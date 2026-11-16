@@ -1,0 +1,58 @@
+[project]
+name = "parcelcheck"
+version = "0.1.0"
+description = "ParcelCheck (P4): damaged-parcel refund agent. LLMOps on GCP (Agentic Workflows) + product files (Data & AI Product)."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "accelerate>=1.1",
+    "chainlit>=2.12.0",
+    "datasets>=3.1",
+    "gcsfs>=2024.6.0",
+    "google-cloud-aiplatform>=1.70",
+    "google-cloud-storage>=2.18",
+    "kfp>=2.10",
+    "langfuse>=3.0,<4",           # Session 5 practice API (observe, start_as_current_generation)
+    "pandas>=2.2",
+    "peft==0.13.2",
+    "pydantic>=2.7",              # Session 6: guardrail verdict and prompt file models
+    "pyyaml>=6.0",                # Session 6: versioned prompts, thresholds
+    "python-dotenv>=1.0",
+    "requests>=2.32",
+    "tensorboard>=2.17",
+    "torch>=2.4",
+    "transformers==4.46.*",
+    "trl==0.12.2",
+]
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.2",
+    "mypy>=1.11",
+    "pytest>=8.3",
+    "ruff>=0.6",
+    "types-pyyaml>=6.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Session 6 families: F pyflakes, B bugbear, I import order, TID no relative imports, E errors.
+# D (docstrings) is left out for now: the older Kubeflow components would fail it.
+select = ["E", "F", "B", "I", "TID"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+# checked strictly first: the Session 6 code; older modules are added once they are clean
+files = ["src/agent/input_guardrail.py", "src/evaluation", "scripts/check_guardrail_run.py"]
+strict = true

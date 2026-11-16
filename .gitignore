@@ -1,8 +1,30 @@
-.DS_Store
+# secrets
 .env
-.venv/
+*.json.key
+service-account*.json
+
+# python
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
+*.py[cod]
+.venv/
+
+# build outputs
+model_training_pipeline.json
+logs/
 models/
-~$*.xlsx
+outputs/
+predictions_local.csv
+.files/
+.chainlit/translations/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+~$*
+
+# real-photo test set: images live in the bucket, only the CSV is committed
+evals/photos/
+
+# notebooks
+.ipynb_checkpoints/

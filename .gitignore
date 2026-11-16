@@ -25,3 +25,6 @@ predictions_local.csv
 
 # real-photo test set: images live in the bucket, only the CSV is committed
 evals/photos/
+
+# notebooks
+.ipynb_checkpoints/

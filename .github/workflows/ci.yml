@@ -1,0 +1,30 @@
+# Session 6.4: code checks on every pull request and every push to main.
+# Fast and free: no cloud call. The guardrail eval (Gemini) is in guardrail_eval.yml.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install (locked versions, dev tools included)
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Types (mypy, strict on the Session 6 code)
+        run: uv run mypy
+      - name: Tests (pytest)
+        run: uv run pytest -q

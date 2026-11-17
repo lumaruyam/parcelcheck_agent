@@ -1,13 +1,19 @@
 """The four-step prototype must decide exactly like the agent used for the eval (same rules, same routes)."""
 import csv
+from pathlib import Path
+
+import pytest
 
 from prototype.pipeline import run
 from scripts.run_eval_set import parse_row
 from src.agent.agent import handle_claim
 
+EVAL_SET = Path("evals/eval_set_v0.csv")
 
+
+@pytest.mark.skipif(not EVAL_SET.exists(), reason="eval set v0 arrives with the AI Product round R1-C")
 def test_pipeline_matches_agent_on_eval_rows():
-    rows = list(csv.DictReader(open("evals/eval_set_v0.csv", encoding="utf-8")))
+    rows = list(csv.DictReader(EVAL_SET.open(encoding="utf-8")))
     checked = 0
     for row in rows:
         claim = parse_row(row["input_the_agent_receives"])

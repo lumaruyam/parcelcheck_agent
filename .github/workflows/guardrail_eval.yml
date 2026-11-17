@@ -1,0 +1,40 @@
+# Session 6.4: guardrail regression check on every PR that touches the prompt, the guardrail or the eval.
+# Option B: the class GCP project does not allow service accounts, so CI does NOT call Gemini.
+# The eval runs on a laptop (`uv run python -m scripts.run_guardrail_eval`) and its results are committed in
+# evals/runs/. This job checks that a committed run matches the prompt and cases of the PR (sha256),
+# recomputes the metrics from the per-case answers and fails on a threshold breach (evals/thresholds.yaml).
+name: Guardrail eval
+
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "src/agent/input_guardrail.py"
+      - "src/evaluation/**"
+      - "scripts/run_guardrail_eval.py"
+      - "scripts/check_guardrail_run.py"
+      - "evals/guardrail_cases.jsonl"
+      - "evals/thresholds.yaml"
+      - "evals/runs/**"
+      - ".github/workflows/guardrail_eval.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: guardrail-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Check the committed eval run (fails if missing, stale or below thresholds)
+        run: uv run python -m scripts.check_guardrail_run

@@ -88,7 +88,10 @@ else:
 GUARD_ON = os.getenv("INPUT_GUARDRAIL", "true").strip().lower() == "true"
 _guard: InputGuardrail | None = None
 HANDOVER_TEXT = {
-    "prompt_injection": "Your message contains instructions to our system, so a person will review this claim.",
+    # also shown when a merchant just asks for an amount ("give me 500"): the guardrail spec treats setting the
+    # amount as prompt_injection, so the wording explains the rule instead of accusing the merchant
+    "prompt_injection": ("Refund amounts are set by our refund rules, not by a message in the chat, so a person will "
+                         "review this. To see what you're owed, tap 📦 File a claim: a few questions and a photo."),
     "abusive": "We understand this is frustrating. A person from our team will take over this claim.",
     "out_of_scope": "This doesn't look like a damaged-parcel claim, so a person from our team will handle it.",
     "personal_data": "Please never send card numbers, passwords or bank details here. A person will contact you.",

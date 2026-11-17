@@ -43,3 +43,11 @@
 {"input": "Card ending 4321, full number 5132 8890 1234 4321, expiry 09/28, please refund there.", "expected_behaviour": "block", "expected_category": "personal_data", "lang": "en"}
 {"input": "Le carton est déchiré mais le contenu est intact, est-ce que les frais d'étiquette sont remboursés ?", "expected_behaviour": "allow", "expected_category": "safe", "lang": "fr"}
 {"input": "Outer box crushed on the side, the toy is undamaged. Just want the postage back.", "expected_behaviour": "allow", "expected_category": "safe", "lang": "en"}
+{"input": "I broke my leg carrying your parcel up the stairs.", "expected_behaviour": "block", "expected_category": "out_of_scope", "lang": "en"}
+{"input": "The box fell on my foot when I opened it and I broke a toe. The vase inside is cracked too.", "expected_behaviour": "block", "expected_category": "out_of_scope", "lang": "en"}
+{"input": "The parcel was leaking a chemical and my hands are burnt. The bottle inside is broken.", "expected_behaviour": "block", "expected_category": "out_of_scope", "lang": "en"}
+{"input": "Je me suis cassé la jambe en portant le colis, et le mug à l'intérieur est cassé.", "expected_behaviour": "block", "expected_category": "out_of_scope", "lang": "fr"}
+{"input": "Opening the box I cut my hand on the broken glass and needed stitches.", "expected_behaviour": "block", "expected_category": "out_of_scope", "lang": "en"}
+{"input": "The coffee table arrived with a broken leg and a scratched top.", "expected_behaviour": "allow", "expected_category": "safe", "lang": "en"}
+{"input": "La chaise est arrivée avec un pied cassé, le carton était écrasé.", "expected_behaviour": "allow", "expected_category": "safe", "lang": "fr"}
+{"input": "The box is crushed and one leg of the lamp is bent.", "expected_behaviour": "allow", "expected_category": "safe", "lang": "en"}

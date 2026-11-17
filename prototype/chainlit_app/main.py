@@ -10,6 +10,8 @@ For a first-time user:
   No JSON needed. A photo is described by Gemini (facts only); without a photo, the user types
   what they see.
 - "Try an example" runs one of four ready-made claims (prototype/demo_cases.jsonl).
+- Typing works too: a sentence about the damage ("the mug arrived broken") is screened by the guardrail,
+  then starts a claim with that text already filled in; "history" (or 📜 My claims) lists past claims.
 - Power users can still paste a claim as JSON.
 
 Behind the screen:
@@ -35,6 +37,14 @@ import chainlit as cl
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))  # so "src" is importable
+from prototype.chainlit_app.chat_helpers import (  # noqa: E402
+    guess_category,
+    history_entry,
+    history_markdown,
+    intent_of,
+    load_history,
+    save_history,
+)
 from prototype.pipeline import run as run_pipeline  # noqa: E402  (the four steps, prototype/README.md)
 from src.agent.agent import GENERATION_PARAMETERS, autonomy_on, build_prompt, predict_endpoint, predict_stub  # noqa: E402
 from src.agent.generate_cases import ITEM_WORD, ITEMS  # noqa: E402
@@ -184,6 +194,48 @@ def process(claim: dict, autonomy: bool) -> dict:
         otel_context.detach(token)
 
 
+def screen_message(text: str) -> dict | None:
+    """A typed message (not a claim yet): only the input guardrail, logged as its own trace `chat-message`."""
+    if not LANGFUSE_ON:
+        return _screen_message(text)
+    from opentelemetry import context as otel_context
+
+    token = otel_context.attach(otel_context.Context())
+    try:
+        return _screen_message(text)
+    finally:
+        otel_context.detach(token)
+
+
+@observe(name="chat-message")
+def _screen_message(text: str) -> dict | None:
+    result = screen({"case_id": "message", "merchant_message": text})
+    if LANGFUSE_ON:
+        langfuse.update_current_trace(name="chat-message", input={"message": text},
+                                      output={"guardrail": result.get("guardrail") if result else "safe"},
+                                      tags=["chat-message", result.get("guardrail", "") if result else "safe"])
+        if result is not None:
+            result["trace_id"] = langfuse.get_current_trace_id()
+    return result
+
+
+def trace_url(trace_id: str | None) -> str | None:
+    if not (LANGFUSE_ON and trace_id):
+        return None
+    try:
+        return langfuse.get_trace_url(trace_id=trace_id)
+    except Exception:  # noqa: BLE001 (old SDK, no project id): the history just has no link
+        return None
+
+
+def remember(claim: dict, result: dict) -> None:
+    """Add the claim to the local history (data/runtime/, never in Git); a failure never stops the chat."""
+    try:
+        save_history(history_entry(claim, result, trace_url(result.get("trace_id"))))
+    except OSError:
+        pass
+
+
 @observe(name="refund-claim")
 def _process(claim: dict, autonomy: bool) -> dict:
     if LANGFUSE_ON:
@@ -230,12 +282,17 @@ def mode_line() -> str:
 
 async def answer(claim: dict, autonomy: bool | None = None) -> None:
     autonomy = autonomy_on() if autonomy is None else autonomy
+    thinking = cl.Message(content="🔍 Checking your claim: message check → decision → refund rules…")
+    await thinking.send()
     try:
         result = await cl.make_async(process)(claim, autonomy)
+        await thinking.remove()
         feedback = [cl.Action(name="feedback", payload={"trace_id": result["trace_id"], "value": v}, label=text)
                     for v, text in ((1, "👍 Right decision"), (0, "👎 Wrong decision"))]
         await cl.Message(content=render(result), actions=feedback).send()
+        remember(claim, result)
     except Exception as error:  # show the problem in the chat instead of crashing
+        await thinking.remove()
         await cl.Message(content=f"Something went wrong while processing the claim: {error}").send()
     finally:
         if LANGFUSE_ON:
@@ -247,6 +304,7 @@ async def main_menu(text: str) -> None:
     await cl.Message(content=text, actions=[
         cl.Action(name="new_claim", payload={}, label="📦 File a claim"),
         cl.Action(name="examples", payload={}, label="✨ Try an example"),
+        cl.Action(name="history", payload={}, label="📜 My claims"),
     ]).send()
 
 
@@ -310,9 +368,12 @@ async def describe_photo() -> str | None:
     return (res.get("output") or res.get("content") or "").strip() if res else None
 
 
-async def guided_claim() -> dict | None:
-    category = await ask_choice("**1/6 · What was in the parcel?**",
-                                [(CATEGORY_LABELS[c], c) for c in CATEGORIES])
+async def guided_claim(prefill: str | None = None) -> dict | None:
+    guess = guess_category(prefill) if prefill else None
+    order = ([guess] if guess in CATEGORIES else []) + [c for c in CATEGORIES if c != guess]
+    category = await ask_choice("**1/6 · What was in the parcel?**"
+                                + (f" (from your message, it sounds like **{CATEGORY_LABELS[guess]}**)" if guess else ""),
+                                [(CATEGORY_LABELS[c], c) for c in order])
     if not category:
         return None
     fragile, _ = CATEGORIES[category]  # the word is a training-data example (e.g. headphones), not the user's item
@@ -333,13 +394,20 @@ async def guided_claim() -> dict | None:
     if fragile_option is None or padding is None:
         return None
     await cl.Message(content="**6/6 · The evidence**").send()
-    description = await describe_photo()
+    use_text = False
+    if prefill:
+        use_text = await ask_choice(f"You already told me:\n> {prefill}\n\n**Use this, or add a photo?**",
+                                    [("✅ Use my description", True), ("📷 Add a photo", False)])
+        if use_text is None:
+            return None
+    description = prefill if use_text else await describe_photo()
     if not description:
         return None
     return {"case_id": f"CHAT-{int(time.time())}", "cover": cover, "item_category": category,
             "fragile_item": fragile, "fragile_option": fragile_option, "padding": padding,
             "item_value_eur": round(value, 2), "label_fee_eur": fee, "days_since_delivery": int(days),
-            "damage_description": description}
+            "damage_description": description,
+            **({"merchant_message": prefill} if prefill and description != prefill else {})}
 
 
 def summary(claim: dict) -> str:
@@ -357,15 +425,15 @@ def summary(claim: dict) -> str:
 async def start() -> None:
     await cl.Message(content=(
         "### 📦 ParcelCheck: report a damaged parcel\n"
-        "Answer 6 short questions (about one minute) and get a decision with the rule behind it. "
+        "Tell me what happened in one sentence (\"the mug arrived broken\"), or tap **📦 File a claim**: "
+        "a few one-tap questions, then a decision with the rule behind it. Type **history** to see your past claims. "
         "Small claims are refunded on the spot; larger ones or unclear photos go to a person.\n\n"
         f"_{mode_line()}_")).send()
     await main_menu("How do you want to start?")
 
 
-@cl.action_callback("new_claim")
-async def on_new_claim(_action: cl.Action) -> None:
-    claim = await guided_claim()
+async def claim_flow(prefill: str | None = None) -> None:
+    claim = await guided_claim(prefill)
     if not claim:
         await main_menu("No problem, the claim was not sent.")
         return
@@ -374,6 +442,42 @@ async def on_new_claim(_action: cl.Action) -> None:
         await answer(claim)
     else:
         await main_menu("The claim was not sent.")
+
+
+@cl.action_callback("new_claim")
+async def on_new_claim(_action: cl.Action) -> None:
+    await claim_flow()
+
+
+@cl.action_callback("history")
+async def on_history(_action: cl.Action) -> None:
+    await show_history()
+
+
+async def show_history() -> None:
+    await cl.Message(content=history_markdown(load_history())).send()
+    await main_menu("What next?")
+
+
+async def handle_free_text(text: str) -> None:
+    """A sentence typed by the merchant: guardrail first, then a claim that starts from their words."""
+    reading = cl.Message(content="🔍 Reading your message…")
+    await reading.send()
+    try:
+        result = await cl.make_async(screen_message)(text)
+    finally:
+        if LANGFUSE_ON:
+            langfuse.flush()
+    await reading.remove()
+    if result is not None:  # not a safe damaged-parcel message: hand over, never argue
+        await cl.Message(content="🧑‍💼 " + HANDOVER_TEXT.get(result.get("guardrail", ""), HANDOVER_TEXT["unavailable"])
+                         + "\n\n_Prepared by an AI system. Type **person** to talk to a human._").send()
+        remember({"case_id": "message"}, result)
+        await main_menu("Anything else?")
+        return
+    await cl.Message(content="Thanks, I noted what happened:\n> " + text
+                     + "\n\nLet's turn it into a claim: **a few quick questions** (one tap each), then you can add a photo.").send()
+    await claim_flow(prefill=text)
 
 
 @cl.action_callback("examples")
@@ -405,21 +509,22 @@ async def on_feedback(action: cl.Action) -> None:
 @cl.on_message
 async def on_message(message: cl.Message) -> None:
     text = message.content.strip()
-    low = text.lower()
-    if low in ("switch off", "switch on"):
-        os.environ["AUTONOMY_ENABLED"] = "false" if low.endswith("off") else "true"
+    intent = intent_of(text)
+    if intent == "switch":
+        os.environ["AUTONOMY_ENABLED"] = "false" if text.lower().strip().endswith("off") else "true"
         await cl.Message(content=f"Override switch set. Next claim: _{mode_line()}_").send()
-        return
-    if low in ("person", "human", "agent"):
+    elif intent == "person":
         await cl.Message(content="🧑‍💼 A support agent will contact you within 24 h. Your claim stays open.").send()
-        return
-    if text.upper() in DEMOS:
+    elif intent == "history":
+        await show_history()
+    elif intent in ("greeting", "help", "empty"):
+        await main_menu("Hello 👋 Tell me what happened to your parcel, in one sentence, or pick an option:")
+    elif intent == "demo" and text.upper() in DEMOS:
         await answer(DEMOS[text.upper()]["claim"])
-        return
-    if text.startswith("{"):  # power users: paste a claim as JSON
+    elif intent == "json":  # power users: paste a claim as JSON
         try:
             await answer(json.loads(text))
         except json.JSONDecodeError:
             await cl.Message(content="That JSON could not be read.").send()
-        return
-    await main_menu("I can help you report a damaged parcel.")
+    else:
+        await handle_free_text(text)

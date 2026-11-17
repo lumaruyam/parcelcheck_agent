@@ -28,3 +28,6 @@ evals/photos/
 
 # notebooks
 .ipynb_checkpoints/
+
+# chat history written by the app (claims typed by users, never in Git)
+data/runtime/

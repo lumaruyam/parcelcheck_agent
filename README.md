@@ -103,7 +103,7 @@ Python 3.11 · `uv` · Vertex AI (Pipelines, Model Registry, Endpoints, Gemini) 
 ## Repository structure
 
 ```
-parcel_refund_agent/
+parcelcheck_agent/
 ├── 01_problem_statement.md      # Product A1: problem, personas, hypotheses
 ├── 02_investment_memo.md        # Product A2: go / no-go decision
 ├── 02_sizing.xlsx               # Product A2: sizing model
@@ -152,11 +152,11 @@ parcel_refund_agent/
 ### 1. Install
 
 ```bash
-git clone git@github.com:lumaruyam/parcel_refund_agent.git
+git clone https://github.com/lumaruyam/parcelcheck_agent.git
 ```
 
 ```bash
-cd parcel_refund_agent && uv sync
+cd parcelcheck_agent && uv sync
 ```
 
 ### 2. Configure
@@ -206,7 +206,12 @@ With the fine-tuned model (endpoint deployed and `GCP_ENDPOINT_ID` set):
 uv run chainlit run prototype/chainlit_app/main.py -w
 ```
 
-In the app: **📦 File a claim** (guided questions + photo), **✨ Try an example** (4 demo claims), 👍 / 👎 to record reviewer agreement, type `switch off` / `switch on` to test the override switch, `person` to reach a human.
+In the app:
+
+- **Type what happened** ("the box arrived crushed and the mug is broken"): the input guardrail reads it first. An unsafe or off-topic message goes to a person; a damage description starts a claim with your words already filled in.
+- **📦 File a claim**: guided one-tap questions, then a photo or your typed description.
+- **✨ Try an example**: 4 demo claims. **📜 My claims** (or type `history`): your last 10 claims with their result, trust level and Langfuse trace.
+- 👍 / 👎 records reviewer agreement; `switch off` / `switch on` tests the override switch; `person` reaches a human.
 
 Describe a single photo with Gemini:
 
@@ -232,7 +237,58 @@ uv run python -m scripts.pipeline_runner --data-file cases_v4.jsonl --epochs 1 -
 uv run python -m scripts.register_model_with_custom_handler --model-uri gs://<bucket>/pipeline_root/<...>/fine-tune_<id>/model
 ```
 
-Then deploy the registered model to an endpoint and put its id in `GCP_ENDPOINT_ID`. Data versions and rebuild commands: [`data/README.md`](data/README.md).
+Then deploy the registered model to an endpoint and put its id in `GCP_ENDPOINT_ID` (command in the next section). Data versions and rebuild commands: [`data/README.md`](data/README.md).
+
+### 5. For graders: run it with the same model
+
+Three levels, from nothing to the full system. Every level runs the same app and the same refund policy (`src/agent/policy.py`); only the parts that need the cloud change.
+
+| Level | What you need | What runs |
+|---|---|---|
+| **0 · Offline** | `uv` only | the whole chat, history, policy and trust levels; decisions come from the policy stub instead of Phi-3; no photo, no guardrail |
+| **1 · Gemini** | a Google login with access to the class project (`gcloud auth application-default login`) | + photo description and the input guardrail |
+| **2 · Fine-tuned model** | + the endpoint deployed (below) | + decisions from our fine-tuned Phi-3 (Vertex AI Model Registry `parcelcheck-phi-3-mini`, version 2) |
+
+Level 0, in three commands:
+
+```bash
+git clone https://github.com/lumaruyam/parcelcheck_agent.git && cd parcelcheck_agent && uv sync
+```
+
+```bash
+cp .env.example .env
+```
+
+```bash
+GCP_ENDPOINT_ID= INPUT_GUARDRAIL=false uv run chainlit run prototype/chainlit_app/main.py
+```
+
+Level 2: the model is stored in the Model Registry, so it does not need retraining. Deploying it takes about 15–20 minutes and costs about $1 per hour (n1-standard-8 + 1 × T4), so we undeploy it after each demo. Tell us when you want to test it and we deploy it for that slot, or deploy it yourself. You need an endpoint first: ours is in the team's `.env`, or make your own and put its id in `GCP_ENDPOINT_ID`:
+
+```bash
+gcloud ai endpoints create --region=europe-west2 --display-name=parcelcheck-grader
+```
+
+Then deploy version 2 of the model to it:
+
+```bash
+gcloud ai endpoints deploy-model $GCP_ENDPOINT_ID --region=europe-west2 \
+  --model=1379229584905469952@2 --display-name=parcelcheck-phi3-v2 \
+  --machine-type=n1-standard-8 --accelerator=type=nvidia-tesla-t4,count=1 \
+  --min-replica-count=1 --max-replica-count=1 --traffic-split=0=100
+```
+
+```bash
+uv run chainlit run prototype/chainlit_app/main.py
+```
+
+The first answer is slow (model warm-up). When you have finished, undeploy (the id is printed by `gcloud ai endpoints describe $GCP_ENDPOINT_ID --region=europe-west2`):
+
+```bash
+gcloud ai endpoints undeploy-model $GCP_ENDPOINT_ID --region=europe-west2 --deployed-model-id=<DEPLOYED_MODEL_ID>
+```
+
+CI proves level 0 on every pull request: `tests/test_app_smoke.py` starts the app with no endpoint and no keys and decides a claim end to end.
 
 ---
 

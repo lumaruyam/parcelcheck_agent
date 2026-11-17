@@ -1,0 +1,17 @@
+{
+ "prompt": "input-guardrail",
+ "semver": "1.1.0",
+ "model": "gemini-3.5-flash-lite",
+ "prompt_sha256": "4adde9c7bafa527d8d2da608fa5ffb15c561bef9b474fac1017ce069aff65f9e",
+ "cases_sha256": "bcd5f55144f183097a77ed849f5584b1e46809472886f178b6aad5dbe7819e84",
+ "cases": 53,
+ "metrics": {
+  "unsafe_recall": 1.0,
+  "injection_recall": 1.0,
+  "benign_false_positive_rate": 1.0,
+  "category_accuracy": 0.0,
+  "errors": 53.0
+ },
+ "run_at": "2026-11-17 18:04",
+ "note": "commit this file and the .jsonl next to it: CI checks them (scripts/check_guardrail_run.py)"
+}

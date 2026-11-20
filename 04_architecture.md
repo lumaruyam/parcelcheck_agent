@@ -138,3 +138,190 @@ Drawn in §1. In: a claim; out: a refund ≤ €20 or a prepared decision. One r
 The labels of `eval_set_v0.csv` were drafted with `policy.py` and **must be checked by hand by someone who did not write the case**, before any run (initials and date in `notes`). The cases are not generated with the prompt the decider uses.
 
 ---
+
+# Part B — Infrastructure
+
+## 8. Components at a glance (infrastructure)
+
+```mermaid
+flowchart LR
+  subgraph Client
+    CL["Chainlit app<br>merchant + reviewer profiles"]
+  end
+  subgraph API["FastAPI service (prototype/api) · Docker"]
+    IN["intake + idempotency"] --> YO["YOLOv11n PackageDamage<br>(CPU, in-process)"]
+    IN --> GE["Gemini client"]
+    YO --> XC{"cross-check<br>(rules)"}
+    GE --> XC
+    XC --> DE["decide client"]
+    DE --> GR{"guardrail + route<br>(policy.py)"}
+    GR -->|L4| LED["refund ledger (stub)"]
+    GR -->|L2 / L1| Q["review queue"]
+    DB[("SQLite v0<br>claims · decisions · reviews · ledger")]
+  end
+  subgraph GCP["GCP · europe-west2"]
+    VG["Vertex AI Gemini 2.5 Flash"]
+    EP["Vertex AI Endpoint<br>Phi-3 + LoRA · n1-standard-8 + T4<br>HF pre-built container + handler.py"]
+    MR["Model Registry"]
+    PL["Vertex AI Pipelines (Kubeflow)"]
+    GCS[("GCS bucket<br>team-llmops")]
+    BQ[("BigQuery (SHOULD)<br>decisions export")]
+  end
+  LF["Langfuse (self-hosted, Docker Compose)"]
+
+  CL -- HTTP --> IN
+  GE --> VG
+  DE --> EP
+  PL --> GCS
+  PL --> MR --> EP
+  API -. traces .-> LF
+  DB -. nightly export .-> BQ
+```
+
+| Component | Tech | Where it runs | Owner (proposal) |
+|---|---|---|---|
+| Training pipeline | Kubeflow (KFP v2) on Vertex AI Pipelines | GCP, T4 for fine-tune and inference steps | [name] |
+| Model registry + endpoint | Vertex AI Model Registry, HF PyTorch inference container, custom `handler.py` | GCP | [name] |
+| Agent service | FastAPI + Uvicorn, `ultralytics`, `google-cloud-aiplatform` (`vertexai`), `langfuse` | Local Docker for the demo; Cloud Run is the production path (not built in v0) | [name] |
+| UI | Chainlit, calling FastAPI with `httpx` | Local | [name] |
+| Observability | Langfuse, self-hosted with Docker Compose | Local (`localhost:3000`) | [name] |
+| Data | GCS (raw, cases, images, pipeline root); SQLite in the service; BigQuery export (SHOULD) | GCP / local | [name] |
+
+Patterns, trust levels, checkpoints and the fixed tool list: Part A, §2–§4.
+
+**Two surfaces, same architecture (Session 4 build rule 3).** Chainlit is the **demo surface**: the role Streamlit plays in the course — one user clicks, we watch. FastAPI is the **production surface**: a contract in, a contract out, every request logged, fallbacks and timeouts in code. All the agent logic lives in FastAPI, so the demo and the production path run the same steps.
+
+## 9. Training pipeline (extends the course `Agentic_Workflow_2`)
+
+```mermaid
+flowchart LR
+  A["data_transformation<br>cases.jsonl → messages CSV<br>train / val / test_a / test_b"] --> B["fine_tuning (T4)<br>Phi-3 QLoRA"]
+  A --> C0["inference_base (T4)<br>Phi-3 without adapters"]
+  B --> C1["inference_finetuned (T4)"]
+  C0 --> D["evaluation<br>decision metrics + money<br>+ ragas ROUGE on receipt"]
+  C1 --> D
+  D --> E{"gate: headline ≥ target<br>and wrong-L4 = 0?"}
+  E -- yes --> F["register model version<br>(scripts/register_model_with_custom_handler.py)"]
+```
+
+| Component | Course version | Change for P4 |
+|---|---|---|
+| `data_transformation_component` | Yoda CSV → chat messages, 90/10 split | Reads `gs://…/cases/{train,test_a,test_a_adv,test_b}.jsonl` and writes `messages` CSVs with `make_sft.user_msg()`. **No random split of test sets**: they arrive pre-split and frozen. Train is split 90/10 for validation only |
+| `fine_tuning_component` | `max_seq_length=64`, batch 16 | `max_seq_length=1024`, batch 4 × grad. accumulation 4, LR 2e-4, 2–3 epochs; hyper-parameters logged to Metrics and TensorBoard |
+| `inference_component` | Fine-tuned only, sampled | New `use_adapters: bool` input, so the same component runs **base** and **fine-tuned**. `do_sample=False`, `max_new_tokens=300`. Output rows: `case_id, raw_output, model_variant` |
+| `evaluation_component` | ragas ROUGE/BLEU | Decision metrics from `src/agent/evaluate.py` (valid JSON, clause, amount, clause & amount, L4 share, wrong-L4, leakage €/1k, wrong refusals) **per test set and per variant**. Keeps ragas `RougeScore` on the receipt as a secondary metric. Outputs a per-sample CSV and Kubeflow Metrics |
+| Gate + register | Manual registration script | Pipeline parameter `register_if_pass`. The registration script stays manual for the demo, but records the eval run id in the model's labels |
+
+Pipeline parameters: `cases_uri, seed, num_train_epochs, learning_rate, max_seq_length, max_test_samples, register_if_pass`. The run name is `p4-parcelcheck-<timestamp>`, with caching enabled, so the data step is skipped when its inputs are unchanged.
+
+Image steps (YOLO, Gemini) are **not** in the training pipeline: they are pretrained. Their test B scores come from `scripts/eval_vision.py`, which writes `evals/reports/vision_<date>.json`. The Gemini descriptions of test B photos are cached in `test_b.jsonl`, so the Phi-3 eval on B is reproducible without calling Gemini again.
+
+## 10. Serving
+
+**Phi-3 endpoint.**
+- Uses the course `handler.py`, with `DEFAULT_PARAMETERS = {"max_new_tokens": 300, "do_sample": False}`. The request carries `{"input": <chat-templated prompt>}`.
+- Registered with `parent_model` so that each pipeline run is a new version.
+- The endpoint has 1 node (min = max = 1), n1-standard-8 + 1 T4.
+- **Cost:** order of $1/hour while deployed. It is deployed only for test runs and the demo, and undeployed right after. Recheck the price on the day.
+
+**Gemini.**
+- Called through `vertexai` with `GenerativeModel("gemini-2.5-flash")`, JSON output via `response_schema`, `temperature=0`.
+- Location `GEMINI_LOCATION`, defaulting to `europe-west2`. If the model is not served there, use another EU region (e.g. `europe-west1`); photos stay in the EU.
+
+**YOLO.**
+- `ultralytics.YOLO("models/package_damage/best.pt")`, loaded once at FastAPI startup. CPU inference is about 100 ms per image.
+- Weights are downloaded from the pinned HF commit by `scripts/fetch_models.py`.
+
+**Auth.**
+- Demo: the gcloud user token, as in the course.
+- Production path: a service account with `aiplatform.user` only, mounted into the FastAPI container. There are no keys in the code; `.env` is git-ignored.
+
+## 11. Request lifecycle (one claim)
+
+```mermaid
+sequenceDiagram
+  participant M as Merchant (Chainlit)
+  participant A as FastAPI
+  participant Y as YOLO (local)
+  participant G as Gemini (Vertex)
+  participant P as Phi-3 endpoint
+  participant L as Langfuse
+  M->>A: POST /claims (fields, message, photo)
+  A->>A: idempotency check on claim_id · redact PII
+  par vision
+    A->>Y: classify(photo)
+    A->>G: describe(photo)
+  end
+  A->>A: cross-check (rules)
+  A->>P: predict(prompt) do_sample=False
+  P-->>A: raw JSON
+  A->>A: guardrail: recompute amount, coherence, route
+  alt L4
+    A->>A: ledger.write_refund + receipt
+  else L2 / L1
+    A->>A: queue.enqueue(reasons, policy amount)
+  end
+  A-->>M: ClaimResult
+  A-->>L: trace: spans classify · describe(gen) · cross_check · decide(gen) · guardrail · route
+```
+
+**Langfuse model (Session 5).**
+- **Trace** `handle_claim`. Metadata: `claim_id`, `merchant_id`, `language`, `amount_band`, `experiment_arm` (shadow / A / B), `policy_version`.
+- **Spans:**
+  - `classify`, with label and confidence;
+  - `describe`, a *generation*: model gemini-2.5-flash and its version;
+  - `cross_check`;
+  - `decide`, a *generation*: model `phi3-parcelcheck`, version = the registry `modelVersionId`, parameters, and the raw and parsed output;
+  - `guardrail`, with its reasons;
+  - `route`, with the trust level.
+- **Scores:**
+  - `guardrail_pass` (0/1) at creation;
+  - `human_agreement` (0/1) and `amount_delta_eur`, posted when a reviewer acts.
+- **Dashboards:**
+  - L4 share and leakage by model version;
+  - latency p95 per span;
+  - disagreement rate;
+  - `need_evidence` share by week.
+
+## 12. Storage layout
+
+```
+gs://<team>-llmops/
+  raw/bitext/…            raw/roboflow/<dataset>/…        raw/kled/ (if licensed)
+  cases/train.jsonl  cases/test_a.jsonl  cases/test_a_adv.jsonl  cases/test_b.jsonl
+  images/test_b/<id>.jpg
+  pipeline_root/…         (KFP artifacts: datasets, model adapters, predictions, metrics)
+models/package_damage/best.pt  (local, pinned commit, not in git)
+prototype/api/parcelcheck.db   (SQLite, v0; tables: claims, vision, decisions, reviews, ledger)
+```
+
+## 13. Environments and configuration
+
+`.env.example` (extends the course file):
+
+```
+GCP_PROJECT_ID=  GCP_REGION=europe-west2  GCP_BUCKET_NAME=
+GCP_PROJECT_NUMBER=  GCP_ENDPOINT_ID=
+GEMINI_MODEL=gemini-2.5-flash  GEMINI_LOCATION=europe-west2
+YOLO_WEIGHTS=models/package_damage/best.pt  YOLO_HF_REVISION=<commit>
+AUTONOMY_ENABLED=true  AUTO_LIMIT_EUR=20  HUMAN_REVIEW_LIMIT_EUR=100
+LANGFUSE_PUBLIC_KEY=  LANGFUSE_SECRET_KEY=  LANGFUSE_HOST=http://localhost:3000/
+API_BASE_URL=http://localhost:8080
+```
+
+Python 3.11 (managed with `uv`). The `transformers`/`peft`/`trl` pins are the course pins. Vision dependencies (`ultralytics`, `imagehash`, `pillow`) go in a separate `uv` group `api`, so that the KFP component images stay unchanged.
+
+## 14. Where inference runs, and what leaves our perimeter
+
+| Data | Goes to | Why accepted / mitigation |
+|---|---|---|
+| Damage photo | Gemini on Vertex AI (Google, EU region) | Needed for the description. Not used for Google training under Vertex terms (verify). Label photos are never sent |
+| Redacted merchant message + label fields | Our Phi-3 endpoint (our GCP project) | Stays in our project |
+| Traces | Self-hosted Langfuse | Stays local; 90-day retention |
+
+## 15. Failure and rollback mechanics
+
+- **Kill switch ⏻.** `AUTONOMY_ENABLED=false` (env or `POST /admin/autonomy`). The router returns L1 for every claim: the agent only suggests, nothing is paid or sent without a person (§4). It takes effect on the next claim and needs no deploy. Tested before launch by re-running the eval with the switch off.
+- **Model rollback.** Re-deploy the previous registry version to the endpoint (one console action, about 15–30 min). While this runs, the kill switch is on.
+- **Timeouts.** Gemini 20 s, Phi-3 30 s, then the fallbacks in `spec.md` §6.
+- **Re-validation on model change.** Any new Phi-3 version, Gemini model id or YOLO commit has to pass test A and B (pipeline evaluation component + `eval_vision.py`) before `AUTONOMY_ENABLED` is set back to true.

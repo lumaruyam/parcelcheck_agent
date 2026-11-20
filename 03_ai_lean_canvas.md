@@ -15,3 +15,13 @@
 | 7. Cost structure — seven lines | Tokens ≈ €0.5k · integration €30k/yr (amortised) · evaluation €20k · supervision €13.5k · monitoring + endpoint €22k · re-evaluation €12k · error cost 3% × €35 on L4 | 02 |
 | 8. Key metric | ≥ 40% of decidable damaged claims at L4 with zero wrong automatic refunds (test A + B, 23 Nov) | 03 brief §7 |
 | 9. Unfair advantage | Label, cover and tracking data no vendor sees; our policy is code; eval-sets and adapters we own | 02 (build / buy) |
+
+## The five AI blocks
+
+| Block | Our answer | Comes from |
+|---|---|---|
+| 10. Data — sources, rights, gaps | Synthetic claims (policy-labelled) · Bitext wording (CDLA-Sharing) · Roboflow photos (CC BY 4.0) · Kled optional (licensed). Gap: few real photos show the item | governance.md · S3 |
+| 11. Model — rung per part | Rules (facts, amount, routing) · YOLOv11n pretrained · Gemini pretrained · Phi-3 prompt-only in v0, + LoRA only if the eval says so · hybrid workflow overall, not an agent | 03 brief §5 |
+| 12. Evaluation — eval-set and size | `evals/eval_set_v0.csv` 20 → 50 cases · test A 300 · adversarial 40 · test B 100 real photos (2 labellers, κ) · base vs fine-tuned | evals/ |
+| 13. Human in the loop | L4 ≤ €20 with a 5% weekly sample · L2 €20–100 and every decline · L1 > €100, unclear photos, any incoherence · kill switch → all L1, owner Head of Support | 03 brief §2 · governance.md S4 |
+| 14. Risks & governance | Never pay an amount the policy does not give · rollback at €630 leakage per 1,000 claims or > 2% wrong refusals · limited-risk tier, AI disclosed on the receipt | governance.md |

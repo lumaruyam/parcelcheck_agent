@@ -39,10 +39,15 @@
 ## Interview guide — approver / finance (#3)
 
 1. When did you last have to approve or reverse a refund? What made you look at it?
-2. How do you find out today that refunds are too generous, or too strict?
-3. What is the largest refund someone can give without asking you? Why that amount?
-4. Tell me about a refund that became a problem: a complaint, an audit, a merchant who left.
-5. What do you check before you trust a number about refunds?
+they didn't described any specific case.
+1. How do you find out today that refunds are too generous, or too strict?
+They notice afterwards, when an answer turns out to be “based on an out of date cache of the store”.
+1. What is the largest refund someone can give without asking you? Why that amount?
+“Never let it issue refunds without approval.” Tracking, FAQs and return-policy questions can be automatic; anything that touches money needs their approval. One adds: “any refund request that includes an image goes to a person first.”
+1. Tell me about a refund that became a problem: a complaint, an audit, a merchant who left.
+no real incident, only fears: “once the money is gone, it is gone”, customers “screenshot it and hold you to it”, and “the real cost was rarely the initial error but the clean up”.
+1. What do you check before you trust a number about refunds?
+“check the number in the draft reply against the live value, and send it to a person when they differ”; answers must come “from real order and policy data”.
 
 *Avoid:* "Would you use an AI that…?" · "Do you like this idea?" · "How much would you pay?"
 

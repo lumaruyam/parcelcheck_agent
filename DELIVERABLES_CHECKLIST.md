@@ -3,7 +3,7 @@
 Built from the course templates (`project_repo_template`, `S3_templates` to `S8_templates`, `S_Recap_Sessions_1_to_7`).
 A box is ticked only when the file is **merged on `main`** of this repo.
 
-**Status on 20 Nov 2026, 13:00:** ✅ on `main` · 🟡 written on the team draft repo, to port · ⬜ to do. Rounds P1–P4 and R1–R4 are all merged except R4-W (this README).
+**Status on 20 Nov 2026, 19:30:** ✅ on `main` once PR #30 is merged · ⬜ to do. Rounds P1–P4 and R1–R4 are merged; #30 brings the S8 files, the A5 wording, eval set v1 and this checklist.
 
 ## Key dates
 
@@ -53,31 +53,31 @@ Check the authors before the tag: `git log --no-merges --format='%an' -- <file> 
 ## Assignment 5 · metrics and evaluation plan (S5) · due 22 Nov
 
 - [x] `05_metrics.md` §1–5 (§1, 2, 4 Rania · §3 Luli · §5 Chanelle)
-- [ ] `05_metrics.md`: two cells *to fill* (the judge agreement rate) ⬜
-- [ ] `evals/eval_set_v1.csv`: **100 cases**, stratified by segment, synthetic rows tagged, labels checked by a person, leak check 0 🟡 draft in `drafts/chanelle/eval_set_v1_draft.csv` (29 rows disagree with the policy stub: check them first)
+- [x] `05_metrics.md`: the two judge rates, written as *not measured yet* (billing blocked since 17 Nov), with the procedure
+- [x] `evals/eval_set_v1.csv`: **100 cases**, stratified by segment, synthetic rows tagged, labels checked by hand (Wei-Ling, 20 Nov; V063–V072 relabelled R6), leak check 0
 - [x] `evals/judge_rubric.md` + `evals/judge_prompt.txt`
-- [ ] `evals/README.md`: the **two agreement rates on 30 cases**, human–human and human–judge ⬜ five cells *to fill* (judge needs Gemini, blocked by billing)
+- [ ] `evals/README.md`: the **two agreement rates on 30 cases** — *not measured yet*: Gemini and the endpoint return 403 (billing) since 17 Nov; graders (Luli, Rania) and procedure written. Measure as soon as billing is back
 - [x] `governance.md` S5: counter-metrics, segments reported, harm threshold, owner
 
 ## Assignments 6–7 · experiments and operations (S6–S7) · due 23 Nov
 
 - [x] `06_07_experiments_operations.md` §1–5 (§1–2 Luli · §3–5 Wei-Ling), sample size in `evals/sample_size.ipynb`
 - [x] The six questions answered: comparison group · unit (merchant) · smallest gain (€3) · slowest guardrail (4 weeks) · decision rule written before · plan B
-- [ ] `06_07` §4.3 "Last tested": the 20 Nov switch re-run 🟡 on the draft (`docs/gaps`)
+- [x] `06_07` §4.3 "Last tested": 20 Nov switch re-run; drill planned 24 Nov
 - [x] `governance.md` S6 and S7
 
 ## Session 8 · launch and pitch · due 26 Nov
 
-- [ ] `08_launch_memo.md` in the **six parts of the S8 template** 🟡 `main` has the 16 Nov structure; the six-part version is on the draft (`docs/gaps`), Rania ports it
-- [ ] `08_launch_memo.md`: the [brackets] (shadow start date, read dates, eval v1 result, judge rates, drill date) ⬜
-- [ ] `governance.md` S8 line: who signs, AI disclosure, last rollback test 🟡 on the draft (`docs/gaps`)
+- [x] `08_launch_memo.md` in the **six parts of the S8 template**
+- [x] `08_launch_memo.md`: dates filled (shadow 1–12 Feb 2027, A/B read 15 Mar 2027, drill 24 Nov); judge rates *not measured yet* (billing)
+- [x] `governance.md` S8 line: who signs, AI disclosure, last rollback test
 - [x] Final `spec.md` (v3) and `03_product_brief.md` (v2) on `main` (re-check after the last changes)
-- [ ] `README.md` AI Product section and this checklist (R4-W) 🟡
+- [x] `README.md` AI Product section and this checklist (R4-W, #30)
 - [ ] `git tag v1.0` and `git push origin v1.0` ⬜
 
 ## Work that is not a file
 
-- [ ] Chanelle checks eval v1 row by row, starts with the 29 rows in `drafts/chanelle/stub_vs_v1_labels_20261120.txt`
+- [x] Eval v1 checked row by row (Wei-Ling, 20 Nov); Chanelle reads the 29 flagged rows and the 10 relabels before the oral (Q3)
 - [ ] Two graders who did not write the cases grade the 30 golden rows → human–human rate
 - [ ] Judge run on the same 30 rows → human–judge rate (blocked by billing: say so at the oral if still blocked)
 - [x] Switch re-run 20 Nov (scripted): switch off 0 L4 of 48 and of 90; switch on 12 of 48

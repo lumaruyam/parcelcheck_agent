@@ -35,7 +35,7 @@ Details: [`01_problem_statement.md`](01_problem_statement.md), [`02_investment_m
 
 One numbered file per session, as in the course repo template. Owners follow the rounds of the team PR guide; the full checklist with every requirement is in [`DELIVERABLES_CHECKLIST.md`](DELIVERABLES_CHECKLIST.md).
 
-Status on 20 Nov 2026, 13:00: ✅ merged on `main` · 🟡 written on the draft repo, to port · ⬜ to do
+Status on 20 Nov 2026, 19:30: ✅ on `main` once PR #30 is merged · ⬜ to do
 
 | File | Session · due | Owner(s) | Status |
 |---|---|---|---|
@@ -49,12 +49,12 @@ Status on 20 Nov 2026, 13:00: ✅ merged on `main` · 🟡 written on the draft 
 | [`prototype/`](prototype/) four steps | S4 · A4 | one step each | ✅ |
 | [`evals/eval_set_v0.csv`](evals/eval_set_v0.csv) (50) · [`evals/report_v0.md`](evals/report_v0.md) | S4 · A4 | Chanelle · Wei-Ling | ✅ |
 | [`spec.md`](spec.md) | S3 → final 26 Nov | Rania, Wei-Ling | ✅ v3 |
-| [`05_metrics.md`](05_metrics.md) | S5 · A5, 22 Nov | Rania §1, 2, 4 · Luli §3 · Chanelle §5 | ✅ · two cells to fill |
-| `evals/eval_set_v1.csv` (100) | S5 · A5, 22 Nov | Chanelle | 🟡 |
-| [`evals/judge_rubric.md`](evals/judge_rubric.md), [`judge_prompt.txt`](evals/judge_prompt.txt), [`evals/README.md`](evals/README.md) (two agreement rates) | S5 · A5, 22 Nov | Chanelle, Wei-Ling | ✅ · ⬜ rates |
+| [`05_metrics.md`](05_metrics.md) | S5 · A5, 22 Nov | Rania §1, 2, 4 · Luli §3 · Chanelle §5 | ✅ · judge rate not measured yet (billing blocked) |
+| [`evals/eval_set_v1.csv`](evals/eval_set_v1.csv) (100) | S5 · A5, 22 Nov | Chanelle, Wei-Ling (hand check) | ✅ |
+| [`evals/judge_rubric.md`](evals/judge_rubric.md), [`judge_prompt.txt`](evals/judge_prompt.txt), [`evals/README.md`](evals/README.md) (two agreement rates) | S5 · A5, 22 Nov | Chanelle, Wei-Ling | ✅ · rates not measured yet (billing blocked) |
 | [`06_07_experiments_operations.md`](06_07_experiments_operations.md) | S6–S7 · 23 Nov | Luli §1–2 · Wei-Ling §3–5 | ✅ |
-| [`08_launch_memo.md`](08_launch_memo.md) | S8 · 26 Nov | Rania · Luli · Chanelle | ✅ draft · 🟡 six-part version |
-| [`governance.md`](governance.md), one line per session | S1 → S8 | all four | ✅ S1–S7 · 🟡 S8 |
+| [`08_launch_memo.md`](08_launch_memo.md) | S8 · 26 Nov | Rania · Luli · Chanelle | ✅ six S8 parts |
+| [`governance.md`](governance.md), one line per session | S1 → S8 | all four | ✅ S1–S8 |
 | tag `v1.0` | 26 Nov | — | ⬜ |
 
 **Pitch:** Friday 27 Nov, 8 min + 3 min of questions, everyone speaks; the demo shows a normal claim, a refused claim and the score. Slides and the demo video are not in Git.

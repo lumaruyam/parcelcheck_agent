@@ -31,6 +31,36 @@ Details: [`01_problem_statement.md`](01_problem_statement.md), [`02_investment_m
 
 ---
 
+## AI Product deliverables
+
+One numbered file per session, as in the course repo template. Owners follow the rounds of the team PR guide; the full checklist with every requirement is in [`DELIVERABLES_CHECKLIST.md`](DELIVERABLES_CHECKLIST.md).
+
+Status on 20 Nov 2026, 19:30: ✅ on `main` once PR #30 is merged · ⬜ to do
+
+| File | Session · due | Owner(s) | Status |
+|---|---|---|---|
+| [`01_problem_statement.md`](01_problem_statement.md) | S1–S2 · A1 | Chanelle | ✅ |
+| [`02_sizing.xlsx`](02_sizing.xlsx), [`02_investment_memo.md`](02_investment_memo.md) | S2 · A2 | Chanelle | ✅ |
+| [`03_product_brief.md`](03_product_brief.md) | S3 · A3, final 26 Nov | Rania, Chanelle | ✅ v2 |
+| [`03_ai_lean_canvas.md`](03_ai_lean_canvas.md) | S3 · A3 | Luli, Wei-Ling | ✅ 14 blocks |
+| [`03_user_research.md`](03_user_research.md) | S3 · A3 | all four | ✅ |
+| [`03_prototype_link.md`](03_prototype_link.md) | S3 · A3 | Chanelle, Luli, Wei-Ling | ✅ |
+| [`04_architecture.md`](04_architecture.md) | S4 · A4 | Wei-Ling, Rania | ✅ v1.3 |
+| [`prototype/`](prototype/) four steps | S4 · A4 | one step each | ✅ |
+| [`evals/eval_set_v0.csv`](evals/eval_set_v0.csv) (50) · [`evals/report_v0.md`](evals/report_v0.md) | S4 · A4 | Chanelle · Wei-Ling | ✅ |
+| [`spec.md`](spec.md) | S3 → final 26 Nov | Rania, Wei-Ling | ✅ v3 |
+| [`05_metrics.md`](05_metrics.md) | S5 · A5, 22 Nov | Rania §1, 2, 4 · Luli §3 · Chanelle §5 | ✅ · judge rate not measured yet (billing blocked) |
+| [`evals/eval_set_v1.csv`](evals/eval_set_v1.csv) (100) | S5 · A5, 22 Nov | Chanelle, Wei-Ling (hand check) | ✅ |
+| [`evals/judge_rubric.md`](evals/judge_rubric.md), [`judge_prompt.txt`](evals/judge_prompt.txt), [`evals/README.md`](evals/README.md) (two agreement rates) | S5 · A5, 22 Nov | Chanelle, Wei-Ling | ✅ · rates not measured yet (billing blocked) |
+| [`06_07_experiments_operations.md`](06_07_experiments_operations.md) | S6–S7 · 23 Nov | Luli §1–2 · Wei-Ling §3–5 | ✅ |
+| [`08_launch_memo.md`](08_launch_memo.md) | S8 · 26 Nov | Rania · Luli · Chanelle | ✅ six S8 parts |
+| [`governance.md`](governance.md), one line per session | S1 → S8 | all four | ✅ S1–S8 |
+| tag `v1.0` | 26 Nov | — | ⬜ |
+
+**Pitch:** Friday 27 Nov, 8 min + 3 min of questions, everyone speaks; the demo shows a normal claim, a refused claim and the score. Slides and the demo video are not in Git.
+
+---
+
 ## Architecture
 
 ```
@@ -107,6 +137,17 @@ parcelcheck_agent/
 ├── 01_problem_statement.md      # Product A1: problem, personas, hypotheses
 ├── 02_investment_memo.md        # Product A2: go / no-go decision
 ├── 02_sizing.xlsx               # Product A2: sizing model
+├── 03_product_brief.md          # Product A3: brief v2 (what users changed)
+├── 03_ai_lean_canvas.md         # Product A3: AI lean canvas, 14 blocks
+├── 03_user_research.md          # Product A3: interviews, usability test, what we heard
+├── 03_prototype_link.md         # Product A3: clickable prototype + prompt
+├── 04_architecture.md           # Product A4: architecture, trust levels, costs
+├── 05_metrics.md                # Product A5: metrics and evaluation plan
+├── 06_07_experiments_operations.md # Product A6–7: A/B protocol and operations
+├── 08_launch_memo.md            # Product S8: launch memo
+├── spec.md                      # agent spec: every eval miss becomes a line
+├── DATA_MODEL_CARD.md           # data and model card
+├── DELIVERABLES_CHECKLIST.md    # course deliverables, owners and status
 ├── governance.md                # living governance file (AI Act, GDPR, trust levels…)
 ├── chainlit.md                  # welcome screen of the app
 ├── src/
@@ -126,6 +167,8 @@ parcelcheck_agent/
 │   ├── handler.py               # custom inference handler for the Vertex AI endpoint
 │   └── constants.py             # every setting, read from .env
 ├── prototype/
+│   ├── pipeline.py              # the four steps chained: route → rule → decide → check
+│   ├── steps/                   # step1_route, step2_rule, step3_decide, step4_check
 │   ├── chainlit_app/main.py     # the merchant / reviewer console
 │   └── demo_cases.jsonl         # 4 demo claims (never in train or eval sets)
 ├── prompts/input_guardrail.yaml # versioned prompt (semver), pushed to Langfuse
@@ -138,7 +181,7 @@ parcelcheck_agent/
 └── .github/workflows/           # CI (lint, types, tests) and guardrail eval check
 ```
 
-> **Note:** the four-step prototype (`prototype/pipeline.py`, `prototype/steps/`) and the later product files (`03_*` to `08_*`, `spec.md`) are still on the team draft repo / branch `p4/wei-ling/step-4-check`. `prototype/chainlit_app/main.py` imports `prototype.pipeline`, so the app needs that merge before it starts from `main`.
+> **Status:** the four-step prototype (`prototype/pipeline.py`, `prototype/steps/`) and every product file of the course are on `main`. What is left before the `v1.0` tag is in [`DELIVERABLES_CHECKLIST.md`](DELIVERABLES_CHECKLIST.md).
 
 ---
 

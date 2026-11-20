@@ -70,9 +70,9 @@ uv run python -m scripts.make_grading_sheet --score                             
 
 | | |
 |---|---|
-| Grader A · Grader B | *to fill (two team members who did not write the cases)* |
-| Receipts both would send unedited | *to fill* |
-| Agreement · Cohen's κ | *to fill* |
+| Grader A · Grader B | Luli · Rania (planned) |
+| Receipts both would send unedited | not measured — billing blocked (`evals/README.md`) |
+| Agreement · Cohen's κ | not measured — billing blocked |
 | Disagreements resolved by | *discussion / a third person* |
 
 The receipts of the 7 Nov run were not saved (the script did not keep raw outputs then); the sheet is made from the next endpoint run (v2 model), which `run_eval_set.py` now saves in `evals/runs/`.

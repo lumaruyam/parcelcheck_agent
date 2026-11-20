@@ -30,11 +30,20 @@
 ## Interview guide — support agent (#2)
 
 1. Walk me through the last refund or damage claim you handled, screen by screen.
+	Customer received two bookshelves, both damaged. "I said sorry […] told him we'll reship and pick up the damaged shelves for him and in appeasement I'll refund the shipping (that was around 250)." The customer demanded a refund of one shelf on top: "I laughed in my head and said okay let me get you a sup."
+	Second case: a package arrived with "a large hole in it" but the item was fine. "We can't replace items from a damaged package unless the items themselves are also damaged."
 2. Which part took the longest? Where did you have to look something up?
+	Not answered directly. In freight claims, photos and documents come from several parties: "Receiver should notate and take pictures of damaged/lost cargo. The carrier should take pictures and send them to the broker as well."
 3. How did you decide from the photo? When was it hard to decide?
+	Some retailers do not ask for a photo at all: "You do not need to prove it. We will believe you if you JUST SAY it was damaged."
+	When a photo is sent, it is not always checked against the order. A seller reports that a first agent told her to refund a buyer whose photos showed a different product: "If I didn't enlarge the pictures I would have not tell they are not the same brand."
 4. When did you have to ask someone (lead, finance) before refunding? What happened then?
+	"I don't even have the ability to refund more (sups can) I just transferred them on over and let the sup deal with it." When the customer asked for a manager: "the wait time is 72 hours".
+	A store owner handling damaged-product tickets: "I do anything under $20 just auto approve, the time saved is worth more than fighting it. Anything above gets flagged for review."
 5. Tell me about a claim you got wrong, or that came back. What happened?
+	Same eBay case: the first agent advised refunding on the wrong photos. A second agent fixed it: "After being on the phone for 20 mins, he has closed the case, issued the refund to the buyer on behalf of eBay, and released my fund."
 6. How many of these did you do on a typical day? (**Time study input: minutes per claim**)
+	Not answered — no minutes-per-claim data from these sources. One store reports "300+ customer service tickets a day", all ticket types mixed.
 
 ## Interview guide — approver / finance (#3)
 
@@ -69,6 +78,14 @@ Ask interviewee #2 (and #1 from the other side) to reconstruct their last 3–5 
 | 4 | *“Vinted gave the buyer a full refund, so I lost all the money from this sale, and I didn’t even get the unbroken ramekins back. Vinted just ignored my claim. I sent the message again several times. In the end, I contacted SignalConso to step in on my case.”* | **Contradicts** the assumption that platforms act quickly on seller claims. Confirms: sellers lack an internal escalation path; external pressure (SignalConso) is the current workaround. |
 | 5 | *“They finally answered me after SignalConso stepped in. They agreed to refund me.”* | Confirms: resolution only came after external intervention — a strong signal that the current process is inefficient. |
 | 6 | *“I got a full refund of the price of the items I sold, but I lost a lot of time and energy contacting Vinted and SignalConso.”* | Confirms: the total cost is not just monetary but also time and energy — aligns with the time-study flip point. |
+| 7 | *"We can't replace items from a damaged package unless the items themselves are also damaged."* | **Confirms** step 2: the decision depends on the item, not the box. A damaged box alone is not enough, so the photo must show the item (R1 vs R6). |
+| 8 | *"I don't even have the ability to refund more (sups can) I just transferred them on over and let the sup deal with it."* | **Confirms** the trust levels: agents act alone under a cap, a person above them decides beyond it (L4 under a threshold, L2/L1 above). |
+| 9 | *"I can arrange a call back. The wait time is 72 hours."* | **Confirms** that waiting for approval is a major cost (the "Approval wait" column of the time study). |
+| 10 | Customer refused, then: *"I WANT TO SPEAK TO YOUR MANAGER"* … *"I'M CALLING MY LAWYER"* | **Confirms** that refusals carry reputational risk and must always go through a person. |
+| 11 | *"in appeasement I'll refund the shipping (that was around 250)"* | **Not covered by our brief**: agents add goodwill gestures that our policy does not model. Add to the out-of-scope list. |
+| 12 | *"You do not need to prove it. We will believe you if you JUST SAY it was damaged."* | **Contradicts** the assumption that a photo is always required. Some retailers trust the customer's word, so a photo check could add friction. |
+| 13 | A first agent advised refunding a buyer whose photos showed another product: *"If I didn't enlarge the pictures I would have not tell they are not the same brand."* A second agent fixed it after a 20-min call. | **Confirms** step 2 is where errors happen (photo not checked against the order), and that one wrong decision costs a second contact. Fraud check (F8) stays out of scope, but this is a real risk. |
+| 14 | *"I do anything under $20 just auto approve, the time saved is worth more than fighting it. Anything above gets flagged for review."* | **Confirms** L4 ≤ €20. **Contradicts** interview #3 (finance: "never let it issue refunds without approval"). Goes to brief §10. |
 
 **Observed behaviour during the interview:**
 - The classmate hesitated when asked “how long did it take you to prepare the evidence?” — they had not tracked it, and had to reconstruct it. This suggests that merchants do not measure their own time, which is exactly why the time study matters.

@@ -1,6 +1,6 @@
-# spec.md — executable spec · ParcelCheck, damaged-parcel refund agent (P4) · v1
+# spec.md — executable spec · ParcelCheck, damaged-parcel refund agent (P4) · v3
 
-> Team: Luli, Rania, Wei-Ling, Chanelle · v1.1, 6 Nov 2026 · supersedes the S3 skeleton. v1.1 = aligned with Session 4 (workflow vs agent, checkpoints, override switch to L1, demo vs eval data). **v2 comes after the first eval run**: every miss in `evals/report_v0.md` becomes a line in §17.
+> Team: Luli, Rania, Wei-Ling, Chanelle · **v3, 13 Nov 2026** (Sessions 5–7 built: input guardrail, prompt versioning, CI, Langfuse Cloud, monitoring, judge kit, model version 2; changed lines are marked **[v3]**, log §17 rows 9–15) · **v2, 8 Nov 2026** (after the first eval run, §17; changed lines are marked **[v2]**) · v1.1, 6 Nov 2026 · supersedes the S3 skeleton. v1.1 = aligned with Session 4 (workflow vs agent, checkpoints, override switch to L1, demo vs eval data). **v2 comes after the first eval run**: every miss in `evals/report_v0.md` becomes a line in §17.
 > This is what the coding agent reads to build the prototype. It is shared by the two courses: **Agentic Workflows** (MSA-DAT07-03: build and test it end to end on GCP) and **Data & AI Product** (MSA-DAT07-04: decide whether and how it ships).
 > Every section is a decision. Money figures come from the base case of `02_sizing.xlsx` / `02_investment_memo.md` (6 Nov 2026); each one cites its source type there.
 > Companion files: `04_architecture.md` (decoded architecture + infrastructure) · `evals/report_v0.md` (the number against §10) · `DATA_MODEL_CARD.md` (datasets, models, data audit) · `README.md` (repo layout, how to run).
@@ -39,7 +39,7 @@ The steps run in this order. **The way back to a person is designed first:** eve
 - 0 intake     : POST /claims {label fields, merchant message, 1–3 photos}   -> claim_id, stored          (code · rules)
 - 1 classify   : photo                       -> {label: damaged|normal|none, confidence, boxes}   (pretrained YOLOv11n · no autonomy, input to 3)
 - 2 describe   : photo                       -> {description, packaging_state, item_visible,
-                                                 item_state, photo_usable}                            (pretrained Gemini 2.5 Flash · facts only, no decision)
+                                                 item_state, photo_usable}                            (pretrained Gemini 3.8 Flash · facts only, no decision)
 - 3 cross-check: classify + describe         -> agree | disagree | no_detection                       (rules)
 - 4 decide     : label fields + description
                  + merchant message          -> {clause, decision, amount_eur, receipt}             (fine-tuned Phi-3-mini + LoRA)
@@ -96,7 +96,7 @@ All money is in EUR with 2 decimals. All timestamps are ISO 8601 UTC. `claim_id`
 { "classifier": {"label": "damaged|normal|none", "confidence": 0.91, "model": "cvtechniques/PackageDamage@<commit>"},
   "gemini": {"description": "…", "packaging_state": "damaged|intact|unknown",
              "item_visible": true, "item_state": "damaged|intact|unknown",
-             "photo_usable": true, "model": "gemini-2.5-flash"},
+             "photo_usable": true, "model": "gemini-3.8-flash"},
   "cross_check": "agree|disagree|no_detection" }
 
 // Phi-3 input (the user turn): INSTRUCTION + policy text + this JSON
@@ -199,7 +199,7 @@ These metrics are computed by `src/agent/evaluate.py` and also by the pipeline's
 - (a) base Phi-3, prompt only, with the same instruction (the v0 product path, §3);
 - (b) fine-tuned Phi-3.
 
-Both run on A, A-adv and B, with `do_sample=False` and `max_new_tokens=300`.
+Both run on A, A-adv and B, with `do_sample=False` and `max_new_tokens=256` **[v2: 256 is what the handler and the pipeline use; an answer is ≈ 110 tokens]**. **[v2]** Every run saves the raw model outputs in `evals/runs/`.
 
 | Metric | Definition | Target (b) |
 |---|---|---|
@@ -214,6 +214,7 @@ Both run on A, A-adv and B, with `do_sample=False` and `max_new_tokens=300`.
 | Gemini item_state agreement | vs hand label on B | ≥ 80% (reported separately: if a decision is wrong, we know whether the description or the decision failed) |
 | YOLO damaged recall | on B, held out from its training | ≥ 0.90 |
 | Receipt faithfulness | LLM-as-judge (Gemini): does the receipt only state facts from the description and label? 1/0 | ≥ 95% (COULD) |
+| **[v3]** Receipt sendable as is | five-criteria guideline (`evals/judge_rubric.md`): sendable / needs edit / escalate, two human graders on 30 golden rows + a Gemini judge validated against them (`scripts/judge_kit.py`, `evals/README.md`) | report the two agreement rates (Assignment 5) |
 | Receipt ROUGE-L vs reference | ragas `RougeScore` (course component kept) | report only |
 | Latency p95 per claim | intake → route | ≤ 15 s |
 
@@ -243,7 +244,7 @@ Below target: do not fix the prompt while looking at test sets. List the misses 
 
 So `s* = (F + H + L) / (N · (c_h − c_a))`. L2 claims also save time (pre-filled decision): add `s₂ · N · Δt₂ · rate` once measured.
 
-## 11. product metrics and A/B test (summary; full versions in `05_metrics.md`, `06_ab_protocol.md`)
+## 11. product metrics and A/B test (summary; full versions in `05_metrics.md`, `06_07_experiments_operations.md` §1–2) **[v3: file renamed by the course]**
 
 **Primary metric:** refund cost per case = processing cost + refund leakage.
 
@@ -283,9 +284,17 @@ Provisional values: σ = €6, MDE δ = €1, m = 3 claims per merchant, ICC = 0
   - FR share or item mix shifts (PSI > 0.2 on `item_category`);
   - any change of model version (Gemini or Phi-3) → re-run test A and B before re-enabling L4.
 
-**Rollback criterion, as a money figure:** if over-refund leakage on the L4 sample exceeds **€630 per 1,000 damaged claims** (2× the error cost priced in `02_sizing.xlsx`: 300 L4 claims per 1,000 × 3% × €35 = €315), or wrong refusals exceed **2%**, in any week, then set `AUTONOMY_ENABLED=false` within one hour of the weekly reading. From the next claim everything is L1: the agent suggests, a person decides and pays. Owner: Head of Support (Finance can request it). On-call: [name].
+**Rollback criterion, as a money figure:** if over-refund leakage on the L4 sample exceeds **€630 per 1,000 damaged claims** (2× the error cost priced in `02_sizing.xlsx`: 300 L4 claims per 1,000 × 3% × €35 = €315), or wrong refusals exceed **2%**, in any week, then set `AUTONOMY_ENABLED=false` within one hour of the weekly reading. From the next claim everything is L1: the agent suggests, a person decides and pays. Owner: Head of Support (Finance can request it). On-call: **Wei-Ling** (prototype and demo) **[v3]**.
 
 Re-enable L4 only after the cause is fixed and test A and B pass again.
+
+**[v3] Four monitoring layers** (metric, paging threshold, clock, owner, tool) and the four drift kinds: `06_07_experiments_operations.md` §3, computed weekly by `evals/monitoring.ipynb` from the Langfuse traces. Every trace carries the pre-registered segments (`seg_language`, `seg_amount_band`, `seg_cover`, `seg_fragile`).
+
+**[v3] Input guardrail (Session 6).** Before step 1, the merchant's text is classified by Gemini 3.5 Flash-Lite (`eu`, temperature 0, structured output with `reason` before `category`): `safe` · `prompt_injection` · `abusive` · `out_of_scope` · `personal_data`. Only `safe` reaches the four steps; every other category, and any guardrail failure, goes to a person (fail closed), never to an automatic refusal (`src/agent/input_guardrail.py`). Last eval (45 cases, 12 Nov 2026): injection recall 1.00, unsafe recall 1.00, benign false positives 0.00, category accuracy 1.00.
+
+**[v3] Release gates.** The guardrail prompt is versioned in Git (`prompts/input_guardrail.yaml`, semver: MAJOR = output contract, MINOR = behaviour, PATCH = wording) and served from Langfuse with the `production` label. A pull request merges only if CI is green (`.github/workflows/ci.yml`: ruff, mypy, pytest; `guardrail_eval.yml`: a committed eval run must match the prompt and cases by sha256 and meet `evals/thresholds.yaml`). Model versions are registered, never deployed by default (`DATA_MODEL_CARD.md` §2: version 1 = data v1, version 2 = data v4, not evaluated yet).
+
+**[v3] Rollback positions and paths** (`06_07` §4.3): ON → suggest-only L1 (`AUTONOMY_ENABLED=false` or `switch off`) → humans-only. Prompt: move the Langfuse `production` label back (under a minute). Model: redeploy the previous registry version (15–30 min, switch at L1 meanwhile). Switch last tested 7 Nov 2026; next test 20 Nov 2026, including the prompt-label rollback.
 
 Air Canada (2024): the company was held to what its chatbot said. Here, every receipt cites a clause that exists, and no amount is paid that the policy does not compute.
 
@@ -326,6 +335,7 @@ Air Canada (2024): the company was held to what its chatbot said. Here, every re
 - Full machine sets: `data/test_a.jsonl`, `data/test_a_adv.jsonl`, `data/test_b.jsonl`, all frozen and hashed in `evals/MANIFEST.md`.
 - Report: `evals/report_v0.md` (the number, the misses by cause, the rows that became demo data).
 - Demo set: `prototype/demo_cases.jsonl`, 4 claims, never in the eval set (§8).
+- **[v3]** `evals/eval_set_v1.csv`: 100 claims (Assignment 5; 200 optional), stratified by segment, labels by a person, must pass `scripts/check_eval_leak.py` with 0 leaks before it is frozen (v0 shared 31 of 48 photo texts with the training data). `evals/golden_30.txt`: 30 golden rows for the judge, never changed.
 
 ## 16. requirement traceability
 
@@ -336,8 +346,10 @@ Air Canada (2024): the company was held to what its chatbot said. Here, every re
 | P1 Decode the architecture: components, patterns, trust levels, tools, HITL, override | §3, §6, §7, `04_architecture.md` §1–§7, `governance.md` Session 4 |
 | S4: number against the criterion, misses by cause, spec v2 | `evals/report_v0.md`, §10, §17 |
 | P2 Three business metrics, quantified | §11, `05_metrics.md` |
-| P3 A/B test with sample size | §11, `06_ab_protocol.md`, `evals/sample_size.ipynb` |
-| P4 Adverse effects and monitoring | §5, §12, `07_operations.md` |
+| P3 A/B test with sample size | §11, `06_07_experiments_operations.md` §1–2, `evals/sample_size.ipynb` **[v3]** |
+| P4 Adverse effects and monitoring | §5, §12, `06_07_experiments_operations.md` §3–4, `evals/monitoring.ipynb` **[v3]** |
+| **[v3]** S5: eval-set 100, guideline, two agreement rates | `evals/README.md`, `evals/judge_rubric.md`, `evals/judge_prompt.txt`, `scripts/judge_kit.py` |
+| **[v3]** WF S5–S6: monitoring, guardrail, prompt versioning, CI | §12, `infra/langfuse/README.md`, `.github/workflows/`, `prompts/` |
 | P5 Technical spec and product brief with rollback plan | this file (§12 rollback), `product_brief.md` |
 | A3: rung per part, success criterion, data audit, 20 eval cases | §3, §10, `DATA_MODEL_CARD.md` §4, §15 |
 | P4 trap: two counter-metrics, money rollback, Air Canada | §9, §11, §12 |
@@ -349,5 +361,17 @@ Every miss becomes a line here, not a longer prompt. One row per change, with th
 | # | Date | Evidence (eval run, rows, cause) | Change to this spec | Effect on the number |
 |---|---|---|---|---|
 | 1 | 6 Nov 2026 | Test B design: real photos mostly show the outside of the box; the policy had no answer for "box crushed, item not visible, merchant says it's broken" | §2 R6 now covers "item not shown although content damage is claimed" (policy v1.1) | not yet measured |
-| 2 | *after `evals/report_v0.md`* | | | |
-
+| 2 | 7 Nov 2026 | `report_v0.md` §3, miss 2: EV25, EV41 (R5 fragile without the option read as R1); R5 = 7% of the training claims | **[v2] §8 data:** training data v2 (`data/cases_v2.jsonl`, 3,000 claims): R5 tripled (fragile-option rate 0.7 → 0.45). Eval rows are never used to write training text | to measure after the v2 retrain |
+| 3 | 7 Nov 2026 | `report_v0.md` §3, miss 1: EV05, EV11 not valid JSON; their photo wording ("wheels broken off", "handle broken off") is absent from our 15 templates | **[v2] §8 data:** description wording widened with Gemini rewrites of our own templates (`--make-variants`). **[v2] §9:** raw outputs saved for every run, so a format failure can be read | to measure after the v2 retrain |
+| 4 | 7 Nov 2026 | `report_v0.md` §3, miss 3: model amounts off (€37.46 vs €37.40) | No change: confirms §2, the amount paid is always recomputed by `policy.py`; the model's amount is only checked | — |
+| 5 | 7 Nov 2026 | Switch test, first run: 12 claims still L4 with `AUTONOMY_ENABLED=false` | **[v2] §12:** the switch is read on every claim, and a test flips the environment variable (`tests/test_agent_demos.py`). The switch test is part of every eval run | 0 L4 with the switch off |
+| 6 | 7 Nov 2026 | Photo test v0 (`evals/photo_report_v0.md`): 21 open, intact boxes read as damaged | **[v2] §4 photo description:** an opened box that is otherwise intact is not damaged packaging (prompt v1, `src/agent/vision.py`); measured on a fresh photo sample, not on the one we looked at | intact read as intact: 13/34 → 28/28 |
+| 7 | 7 Nov 2026 | `gemini-2.5-flash` returned 404: retired on Vertex AI on 20 Oct 2026 | **[v2] §7 / §8:** Gemini 3.8 Flash, location `eu` (served only on global, eu, us); `eu` keeps photos in the EU | — |
+| 8 | 8 Nov 2026 | Trust level shown as L4 on declines (the level came from the amount only) | **[v2] §3:** the trust level shown is the one the claim gets: every decline L2, more evidence or any incoherence L1, switch off L1 | display only |
+| 9 | 10 Nov 2026 | Guardrail eval v1.0.0: a packaging-only claim asking for the label fee read as out_of_scope | **[v3] §12:** input guardrail prompt v1.1.0 (MINOR): packaging-only claims and label-fee requests are safe (policy R3); two new cases written after the fix | guardrail eval: all thresholds met (category accuracy 0.98 → 1.00 on 45 cases, 12 Nov) |
+| 10 | 11 Nov 2026 | Hand check of eval v0 (Luli): 31 of 48 photo texts are training sentences; 17 rows tagged `fr` have English photo text | **[v3] §8 data:** training data **v4** (`data/cases_v4.jsonl`, separate EN/FR templates, 1,270 unique descriptions, 0 leaks); training data v2 (row 2–3) was **never built**, v3 never trained. **§15:** eval v1 must pass the leak check | the 39 % of `report_v0.md` is read as "on seen wording"; the fair before/after is model v1 vs v2 on eval v1 |
+| 11 | 12 Nov 2026 | Pipeline run `…20261112120044` on data v4 | **[v3] §12:** Model Registry version 2 (became `default`): always choose the version explicitly when deploying | not evaluated yet |
+| 12 | 12 Nov 2026 | Langfuse traces had no root and no name (Chainlit's web request was the parent) | **[v3] §12:** one trace per claim, `refund-claim` as root, segments in the trace metadata | monitoring by segment possible |
+| 13 | 12 Nov 2026 | The class GCP project does not allow service accounts: CI cannot call Gemini | **[v3] §12:** CI checks a committed eval run (sha256 of prompt and cases, metrics recomputed) instead of calling the model | same protection, no cloud secret in GitHub |
+| 14 | 13 Nov 2026 | Assignment 5: "the judge says x %" is not defensible without human agreement | **[v3] §9:** receipt guideline (five criteria, three verdicts), judge prompt, 30 golden rows, two agreement rates to report | to fill after the eval v1 endpoint run |
+| 15 | 13 Nov 2026 | Sessions 6 + 7: monitoring must page someone; the switch is a procedure | **[v3] §12:** four layers with thresholds, owners and tools; rollback in six fields with a test date (`06_07` §3–4); `governance.md` S7 | next switch test 20 Nov 2026 |

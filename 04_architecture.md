@@ -1,10 +1,37 @@
 # 04 — Architecture · ParcelCheck (P4)
 
-> v1.1, 6 Nov 2026 · Session 4 deliverable: the diagram, the component table, the patterns, the trust levels, the checkpoints ⊘ and the switch ⏻.
+> v1.2, 8 Nov 2026 (v1.1: 6 Nov) · Session 4 deliverable: the diagram, the component table, the patterns, the trust levels, the checkpoints ⊘ and the switch ⏻.
 > **Part A** decodes the system in the Session 4 vocabulary (Anthropic, *Building effective agents*, Dec 2024). **Part B** is the infrastructure on the course's GCP setup: region **europe-west2** (`GCP_REGION`), GPU **NVIDIA T4** (course quota).
 > Same decisions as `spec.md`. If the two disagree, `spec.md` wins and this file is fixed.
 
 ---
+
+## 0. In one line, and what is built today
+
+**ParcelCheck** prepares refund decisions for damaged-parcel claims from merchants of a shipping-label platform: it pays refunds of €20 or less on its own when every check passes, and sends everything else to a support agent with the decision drafted.
+
+The template asks to describe the prototype we actually built. What runs today, in `/prototype` and `src/`:
+
+| Component | Built and run | Where | Not built yet (target design, kept below) |
+|---|---|---|---|
+| 1 Router: photo facts + scope | ✅ Gemini 3.8 Flash describes the photo (facts only); scope keywords | `prototype/steps/step1_route.py`, `src/agent/vision.py` | YOLO classifier and the cross-check (rows 1 and 3 of §2) |
+| 2 Routing rule | ✅ | `prototype/steps/step2_rule.py` | — |
+| 3 Decide | ✅ fine-tuned Phi-3 + LoRA on a Vertex AI endpoint (deployed for the eval, then undeployed); stub without cloud | `prototype/steps/step3_decide.py`, `src/pipelines/` | — |
+| 4 Policy check + route | ✅ | `prototype/steps/step4_check.py`, `src/agent/guardrail.py` | ledger and receipts are stubs |
+| Surface | ✅ Chainlit: guided claim form, examples, reviewer feedback, switch | `prototype/chainlit_app/main.py` | FastAPI service, SQLite store (§8) |
+| Monitoring | ✅ code ready (Langfuse traces and scores) | `infra/langfuse/README.md` | run with the endpoint for the demo |
+
+The diagram in §1 and the tables below describe the full design; rows marked *target* are not in the prototype yet.
+
+**Metric observed per component (v0, 7–8 Nov):**
+
+| Component | Metric | v0 value | Source |
+|---|---|---|---|
+| 1 Router (Gemini photo facts) | intact photos read as intact · damaged read as damaged (real photos) | 28/28 · 24/37 (dataset labels noisy) | `evals/photo_report_v1.md` |
+| 2 Routing rule | claims sent to a person before the model | 0 of 48 eval rows (EV15 lost parcel is skipped by the script) | `scripts/run_eval_set.py` |
+| 3 Decide (Phi-3) | clause accuracy · valid JSON | 44/48 (92%) · 46/48 (96%) | `evals/report_v0.md` |
+| 4 Policy check | wrong automatic refunds · L4 share of decidable claims | 0 · 39% | `evals/report_v0.md` |
+| ⏻ Switch | L4 claims with the switch off | 0 of 48 (after a bug fix, 7 Nov) | `evals/report_v0.md` §4 |
 
 # Part A — Decode the architecture
 
@@ -35,7 +62,7 @@ The detailed infrastructure diagram is in §8.
 |---|---|---|---|---|---|
 | 0 | Intake + idempotency on `claim_id` | rule-based | 1 rules | L4 | — (duplicate → stored result, never pay twice) |
 | 1 | Classify photo: damaged / normal / none | parallelization (sectioning), branch 1 | 3 pretrained (YOLOv11n) | no autonomy: input to step 3 | — |
-| 2 | Describe photo: packaging, item visible, item state, usable | parallelization (sectioning), branch 2 | 3 pretrained (Gemini 2.5 Flash) | no autonomy: facts only | — |
+| 2 | Describe photo: packaging, item visible, item state, usable | parallelization (sectioning), branch 2 | 3 pretrained (Gemini 3.8 Flash) | no autonomy: facts only | — |
 | 3 | Cross-check the two vision outputs | rule-based merge (gate) | 1 rules | L4 | ⊘ abstention: `disagree` or `no_detection` → L1 |
 | 4 | Decide clause + amount + receipt | prompt chaining, grounded on the policy text and steps 2–3 | 3 pretrained, prompt-only in v0 → fine-tuned (LoRA) only if the eval says so (§5.3) | L2 by default; L4 only through steps 5–6 | — |
 | 5 | Guardrail: recompute the amount from `policy.py`, check coherence | rule-based (a verifier, not an evaluator-optimizer loop) | 1 rules | L4 | ⊘ abstention: amount ≠ policy, clause impossible for the label → L1 |
@@ -81,9 +108,10 @@ A checkpoint is a place in the flow where a named person approves, corrects or t
 **⏻ The override switch.**
 - **What it does:** one action, `AUTONOMY_ENABLED=false` (env variable or `POST /admin/autonomy`), drops the whole system to **L1**. The agent still reads the claim and shows its suggestion, but nothing is paid and no receipt is sent without a person.
 - **Effect time:** the next claim. No deploy.
-- **Owner:** Head of Support. Finance can request it. On-call: [name].
+- **Owner:** Head of Support. Finance can request it. On-call (prototype): Wei-Ling.
 - **When:** the rollback trigger in `spec.md` §12 (leakage > €630 per 1,000 claims or wrong refusals > 2% in a week), a model version change not yet re-validated, or any incident.
 - **Tested before launch:** the eval is re-run with the switch off, and must show 0 L4, 0 ledger writes and 0 receipts sent (`spec.md` §10).
+- **Tested on:** 7 Nov 2026, by Wei-Ling. First run failed (12 claims still L4: the code never read the variable); fixed, re-run: 0 L4 (`evals/report_v0.md` §4). Scope: everyone, from the next claim.
 
 **The Chevrolet answer, for our system.** The bot stated a price with no rule in front of it, and the only switch was "unplug the bot". Here a rung-1 rule recomputes every amount before it is paid (step 5), the human checkpoints are fixed by the money band (step 6), and the switch is one flag with an owner.
 
@@ -160,14 +188,14 @@ flowchart LR
     DB[("SQLite v0<br>claims · decisions · reviews · ledger")]
   end
   subgraph GCP["GCP · europe-west2"]
-    VG["Vertex AI Gemini 2.5 Flash"]
+    VG["Vertex AI Gemini 3.8 Flash (eu)"]
     EP["Vertex AI Endpoint<br>Phi-3 + LoRA · n1-standard-8 + T4<br>HF pre-built container + handler.py"]
     MR["Model Registry"]
     PL["Vertex AI Pipelines (Kubeflow)"]
     GCS[("GCS bucket<br>team-llmops")]
     BQ[("BigQuery (SHOULD)<br>decisions export")]
   end
-  LF["Langfuse (self-hosted, Docker Compose)"]
+  LF["Langfuse Cloud (EU)"]
 
   CL -- HTTP --> IN
   GE --> VG
@@ -183,8 +211,8 @@ flowchart LR
 | Training pipeline | Kubeflow (KFP v2) on Vertex AI Pipelines | GCP, T4 for fine-tune and inference steps | [name] |
 | Model registry + endpoint | Vertex AI Model Registry, HF PyTorch inference container, custom `handler.py` | GCP | [name] |
 | Agent service | FastAPI + Uvicorn, `ultralytics`, `google-cloud-aiplatform` (`vertexai`), `langfuse` | Local Docker for the demo; Cloud Run is the production path (not built in v0) | [name] |
-| UI | Chainlit, calling FastAPI with `httpx` | Local | [name] |
-| Observability | Langfuse, self-hosted with Docker Compose | Local (`localhost:3000`) | [name] |
+| UI | Chainlit (today it calls `prototype/pipeline.py` directly; FastAPI is the target) | Local | [name] |
+| Observability | Langfuse Cloud, Hobby plan (traces, scores, prompt versions) | EU (`cloud.langfuse.com`) | Wei-Ling |
 | Data | GCS (raw, cases, images, pipeline root); SQLite in the service; BigQuery export (SHOULD) | GCP / local | [name] |
 
 Patterns, trust levels, checkpoints and the fixed tool list: Part A, §2–§4.
@@ -225,8 +253,8 @@ Image steps (YOLO, Gemini) are **not** in the training pipeline: they are pretra
 - **Cost:** order of $1/hour while deployed. It is deployed only for test runs and the demo, and undeployed right after. Recheck the price on the day.
 
 **Gemini.**
-- Called through `vertexai` with `GenerativeModel("gemini-2.5-flash")`, JSON output via `response_schema`, `temperature=0`.
-- Location `GEMINI_LOCATION`, defaulting to `europe-west2`. If the model is not served there, use another EU region (e.g. `europe-west1`); photos stay in the EU.
+- Called through `vertexai` with `GenerativeModel("gemini-3.8-flash")`, JSON output, `temperature=0`. Gemini 2.5 Flash was retired on Vertex AI on 20 Oct 2026 (our first call returned 404).
+- Location `GEMINI_LOCATION`, default `eu`: 3.8 Flash is served only on `global`, `eu` and `us`, not in single regions such as `europe-west2`. The `eu` multi-region keeps photos in the EU; `global` would not guarantee it.
 
 **YOLO.**
 - `ultralytics.YOLO("models/package_damage/best.pt")`, loaded once at FastAPI startup. CPU inference is about 100 ms per image.
@@ -269,7 +297,7 @@ sequenceDiagram
 - **Trace** `handle_claim`. Metadata: `claim_id`, `merchant_id`, `language`, `amount_band`, `experiment_arm` (shadow / A / B), `policy_version`.
 - **Spans:**
   - `classify`, with label and confidence;
-  - `describe`, a *generation*: model gemini-2.5-flash and its version;
+  - `describe`, a *generation*: model gemini-3.8-flash and its version;
   - `cross_check`;
   - `decide`, a *generation*: model `phi3-parcelcheck`, version = the registry `modelVersionId`, parameters, and the raw and parsed output;
   - `guardrail`, with its reasons;
@@ -302,10 +330,10 @@ prototype/api/parcelcheck.db   (SQLite, v0; tables: claims, vision, decisions, r
 ```
 GCP_PROJECT_ID=  GCP_REGION=europe-west2  GCP_BUCKET_NAME=
 GCP_PROJECT_NUMBER=  GCP_ENDPOINT_ID=
-GEMINI_MODEL=gemini-2.5-flash  GEMINI_LOCATION=europe-west2
+GEMINI_MODEL=gemini-3.8-flash  GEMINI_LOCATION=eu
 YOLO_WEIGHTS=models/package_damage/best.pt  YOLO_HF_REVISION=<commit>
 AUTONOMY_ENABLED=true  AUTO_LIMIT_EUR=20  HUMAN_REVIEW_LIMIT_EUR=100
-LANGFUSE_PUBLIC_KEY=  LANGFUSE_SECRET_KEY=  LANGFUSE_HOST=http://localhost:3000/
+LANGFUSE_PUBLIC_KEY=  LANGFUSE_SECRET_KEY=  LANGFUSE_HOST=https://cloud.langfuse.com
 API_BASE_URL=http://localhost:8080
 ```
 
@@ -325,3 +353,12 @@ Python 3.11 (managed with `uv`). The `transformers`/`peft`/`trl` pins are the co
 - **Model rollback.** Re-deploy the previous registry version to the endpoint (one console action, about 15–30 min). While this runs, the kill switch is on.
 - **Timeouts.** Gemini 20 s, Phi-3 30 s, then the fallbacks in `spec.md` §6.
 - **Re-validation on model change.** Any new Phi-3 version, Gemini model id or YOLO commit has to pass test A and B (pipeline evaluation component + `eval_vision.py`) before `AUTONOMY_ENABLED` is set back to true.
+
+## 16. Eval result v0 and what we build next
+
+**Headline (`evals/report_v0.md`):** on 48 labelled claims, the fine-tuned model resolved **39%** of the decidable claims alone with **0 wrong automatic refunds**; the criterion was ≥ 40% with 0 wrong refunds. Safe, one point short.
+
+**Next (3 lines):**
+1. Retrain on data v2 (more R5 cases, wider wording) and re-run the same frozen eval (`spec.md` §17).
+2. Two graders on the receipts ("would I send this without editing?"), `evals/grading_v0.csv`.
+3. Langfuse traces on the live endpoint for the demo; YOLO cross-check only if the photo test says Gemini alone is not enough.

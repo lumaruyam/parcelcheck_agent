@@ -8,18 +8,24 @@
 
 | # | Who (role, company type — no personal data) | Real user or classmate in role? | Date | Interviewer · note-taker |
 |---|---|---|---|---|
-| 1 | Someone who **filed a damaged-parcel claim** in the last 6 months: an online seller (Etsy / Vinted / own e-shop) or a small-business shipper | | | |
+| 1 | Someone who **filed a damaged-parcel claim** in the last 6 months: an online seller (Etsy / Vinted / own e-shop) or a small-business shipper | Classmate in role | Nov 8 | Luli · Wei-Ling |
 | 2 | Someone who **handled refund or claim tickets** in customer service (logistics, carrier, marketplace, e-commerce) | | | |
 | 3 | Someone who **approves refunds or watches refund costs** (team lead, ops or finance in e-commerce / logistics) | | | |
 
 ## Interview guide — merchant (#1)
 
 1. Tell me about the last time a parcel you sent arrived damaged. What happened, step by step?
+	It was around end of August 2026. I sold 6 ramekins which I wrapped in bubble wrap and put in a reinforced Nespresso box. When the parcel arrived, the buyer found that two of them were broken.
 2. How did you find out? What did you do first?
+	The buyer sent me the photos of broken ramekins as proof. First, I contacted Vinted to get a refund.
 3. What did you send to get money back: photos, the label, a message? How long did it take you?
+	I sent the photos the buyer had sent me. It took about a month to get a refund from Vinted.
 4. How long until you got an answer? What did you do in the meantime (chase, reship, refund your customer)?
+	Vinted gave the buyer a full refund, so I lost all the money from this sale, and I didn’t even get the unbroken ramekins back. Vinted just ignored my claim. I sent the message again several times. In the end, I contacted SignalConso to step in on my case. In total, it took about a month before I got an answer from Vinted.
 5. What did the answer say? Did you understand why? Did you contest it?
+	They finally answered me after SignalConso stepped in. They agreed to refund me.
 6. What did it cost you in total: the refund, the reship, your time, the customer?
+	I got a full refund of the price of the items I sold, but I lost a lot of time and energy contacting Vinted and SignalConso.
 
 ## Interview guide — support agent (#2)
 
@@ -46,13 +52,21 @@ Ask interviewee #2 (and #1 from the other side) to reconstruct their last 3–5 
 
 | Claim # | Source (interview #) | Read | Photo | Label lookup | Policy + amount | Approval wait | Reply | Follow-ups | Total min |
 |---|---|---|---|---|---|---|---|---|---|
-| | | | | | | | | | |
+| 1 | Interview #1 (classmate in role, Vinted seller) | 4 | 3 | 0 (no label system used) | 6 | 30 days | 12 | 5 contacts × 2 min = 10 | 35 |
 
 ## What we heard (facts, in their words)
 
 | # | Quote or observed behaviour | Which part of our brief it confirms or contradicts |
 |---|---|---|
-| | | |
+| 1 | *“It was around end of August. I sold 6 ramekins which I wrapped in bubble wrap and put in a reinforced Nespresso box. When the parcel arrived, the buyer found that two of them were broken.”* | Confirms: damaged-parcel claims are a real pain point for small sellers; packaging alone does not prevent disputes. |
+| 2 | *“The buyer sent me the photos of broken ramekins as proof. First, I contacted Vinted to get a refund.”* | Confirms: the seller relies on buyer-supplied photos as evidence; the first action is to open a claim with the platform. |
+| 3 | *“I sent the photos the buyer had sent me. It took about a month to get a refund from Vinted.”* | Confirms: evidence submission is photo-based; the process is slow (~1 month). |
+| 4 | *“Vinted gave the buyer a full refund, so I lost all the money from this sale, and I didn’t even get the unbroken ramekins back. Vinted just ignored my claim. I sent the message again several times. In the end, I contacted SignalConso to step in on my case.”* | **Contradicts** the assumption that platforms act quickly on seller claims. Confirms: sellers lack an internal escalation path; external pressure (SignalConso) is the current workaround. |
+| 5 | *“They finally answered me after SignalConso stepped in. They agreed to refund me.”* | Confirms: resolution only came after external intervention — a strong signal that the current process is inefficient. |
+| 6 | *“I got a full refund of the price of the items I sold, but I lost a lot of time and energy contacting Vinted and SignalConso.”* | Confirms: the total cost is not just monetary but also time and energy — aligns with the time-study flip point. |
+
+**Observed behaviour during the interview:**
+- The classmate hesitated when asked “how long did it take you to prepare the evidence?” — they had not tracked it, and had to reconstruct it. This suggests that merchants do not measure their own time, which is exactly why the time study matters.
 
 ## Usability test — one task, think aloud, don't help
 

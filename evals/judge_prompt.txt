@@ -1,0 +1,29 @@
+You grade one decision receipt written by ParcelCheck, a damaged-parcel refund agent for a shipping-label platform.
+The refund policy is fixed (rules R1-R6). The label below is the correct answer, written by a person from the policy.
+
+CLAIM (what the agent received):
+{claim}
+
+LABEL (the correct decision):
+{expected}
+
+AGENT OUTPUT:
+decision: {decision}
+clause: {clause}
+amount_eur: {amount_eur}
+receipt: {receipt}
+
+Answer five questions with YES or NO, each with one sentence of evidence quoted or taken from the inputs above:
+1. Right decision and rule: are the decision (refund / decline / need_evidence) and the clause (R1-R6) the ones in the label? Right decision with a wrong rule is NO.
+2. Right amount: for a refund, is amount_eur equal to the label's amount to the cent? For a decline or need_evidence, is the amount 0 with no amount promised in the text?
+3. Faithful: is every fact in the receipt (photo description, days since delivery, cover, declared value, options) present in the claim, with nothing added? Leaving a fact out is still YES.
+4. Cites the rule clearly: does the first sentence state the decision, and does the receipt name the rule and give its reason in plain words?
+5. Inside the policy, merchant-ready: no promise outside the policy, no blame on the merchant or courier, no internal jargon (L4, guardrail, JSON)? An English receipt is acceptable for every merchant in this version.
+
+Then the verdict:
+- "sendable" if all five are YES;
+- "needs_edit" if 1 and 2 are YES and at least one of 3-5 is NO;
+- "escalate" if 1 or 2 is NO, or if the agent output is missing or not a decision.
+
+Write the evidence first, then the answers, then the verdict. Reply in JSON only:
+{"evidence": ["...", "...", "...", "...", "..."], "answers": ["YES|NO", "YES|NO", "YES|NO", "YES|NO", "YES|NO"], "verdict": "sendable|needs_edit|escalate"}

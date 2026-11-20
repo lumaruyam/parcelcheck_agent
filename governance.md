@@ -96,7 +96,15 @@
 - **Harm threshold that stops the rollout:** *"If the wrong-refusal rate on French claims exceeds 1.5× the English rate for two consecutive weeks, or any segment exceeds 2 % in a week, that segment drops to L1 (suggestions only) until the gap is explained. Owner: Head of Support, reviewed with the DPO monthly."*
 - **How it could be gamed, and the repair:** the L4 share rises if more claims are paid without checks → the leakage counter-metric is measured by people on a random sample, and the €20 limit lives in `policy.py`, changed only by a release with the eval re-run.
 
-## Session 6 — protected segments and the harm threshold that stops an experiment (to come)
+## Session 6 — protected segments and the harm threshold that stops an experiment
+
+> Draft by Luli (task G), assembled 16 Nov; the protocol is `06_07_experiments_operations.md` §1–2.
+
+- **Who signs an experiment on real merchants:** the **Head of Support** signs the protocol (`06_07` §1–2) before the first claim; the **DPO** reads it (personal data on labels). Nobody on the build team can start it alone.
+- **What merchants are told:** every receipt says it was prepared by an AI system and how to reach a person (EU AI Act art. 50); a merchant can always ask a person to decide. The 5 % holdout (no L4 for 6 months) is written here: those merchants pay for our knowledge with a slower answer, which the Head of Support accepts.
+- **Protected segments (pre-registered, reported separately):** French-language merchants, premium cover, fragile items, small merchants (lowest volume tier).
+- **The harm threshold that stops the experiment at once (not at the read date):** over-refund leakage > **€630 per 1,000** damaged claims in the treatment arm, or wrong refusals > **2 %**, in any weekly reading; French wrong refusals > 1.5× English two weeks running; or any "harmful" incident (`06_07` §4.2). Action: the switch to L1 for the treatment arm, the Head of Support informed the same day.
+- **Facebook 2014, for us:** the test design is not enough; the harm threshold and the signature are written before the first claim.
 
 ## Session 7 — accountable owner, rollback authority, incident path
 

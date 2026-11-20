@@ -1,13 +1,60 @@
 # 06–07 · Experiments & operations · ParcelCheck (P4)
 
 > Assignment 6 + 7 (due 26 Nov 2026, with `08_launch_memo.md` and the tag `v1.0`). Five sections = the five moves of Sessions 6 + 7: prove · size · watch · contain · own.
-> §1–2: Luli (task G), review Rania · §3–5: Wei-Ling (task H), review Luli. Numbers come from `spec.md` §9–12, `02_sizing.xlsx`, `evals/report_v0.md` and `governance.md`; values marked *planned* are not measured yet.
+> §1–2: Luli (task G, draft assembled 16 Nov — Luli reviews and commits), review Rania · §3–5: Wei-Ling (task H), review Luli. Numbers come from `spec.md` §9–12, `02_sizing.xlsx`, `evals/report_v0.md` and `governance.md`; values marked *planned* are not measured yet.
 
 ## 1 · Prove the effect — hypothesis and design
-*To be written by Luli (task G): one hypothesis sentence per business metric of `05_metrics.md` §4 ("If we … for …, then … moves from … to … by … — without … leaving its band"), the randomised unit (merchant, `spec.md` §11), the design chain (shadow mode → A/B by merchant → holdout).*
+
+**One sentence per business metric (05_metrics.md §4), each one can be wrong:**
+1. *If we let the agent pay damaged-parcel claims of €20 or less automatically (L4) and pre-fill the decision for the rest, for merchants in the treatment arm, then the **refund cost per damaged claim** moves from **€9 to at most €6** by the end of week 4 — without the wrong-refusal rate leaving **≤ 2 %** and without over-refund leakage exceeding **€630 per 1,000** damaged claims.* (The expected effect is ≈ €5.0. A drop of **€3** is the break-even: the module's fixed costs are ≈ €81k a year on ≈ 27,000 damaged claims, `02_investment_memo.md` §2.)
+2. *If we do the same, then the **merchant time to resolution** of damaged claims moves from **3 days** to **under 24 hours** for at least 75 % of claims by week 2 — without the human queue missing its 24 h service level.*
+3. *If we do the same, then the **wrong-refusal rate stays unchanged** (stop band > 2 % in any week, and French ≤ 1.5× English) through week 4.*
+
+The outcome must exist **with and without the agent**: the L4 share (the primary of §3 of `05_metrics.md`) is 0 in the control arm by construction, so the A/B compares cost per claim, time to resolution and wrong refusals, which exist in both arms.
+
+**Unit of randomisation: the merchant.** A merchant who sees two policies (one claim paid in a minute, the next one in 3 days) would contest the slower one, and merchants learn from their own claims: the effect leaks between claims of the same merchant, not between merchants. Stratified by merchant claim volume.
+
+**Design chain:**
+
+| Step | Design | What it measures | Duration |
+|---|---|---|---|
+| 1 | **Shadow mode**: the agent decides, a person decides, only the person's decision is executed | the real L4 share and the leakage on real claims, σ and ICC for §2 — no merchant affected | 2 weeks (`spec.md` §11) |
+| 2 | **A/B by merchant**: treatment = the agent (L4 ≤ €20, pre-filled L2/L1); control = today's process | the three hypotheses above | 4 weeks (§2) |
+| 3 | **Rollout by steps**: 10 % → 50 % → 100 % of merchants, each step guarded by the four layers of §3 | that the effect holds at scale | ≥ 1 week per step |
+| 4 | **Holdout**: 5 % of merchants never get L4 for 6 months (disclosed in `governance.md` S6) | whether the effect lasts (drift, novelty) | 6 months |
 
 ## 2 · Size it, decide before — sample size and decision rule
-*To be written by Luli (task G): sample size (starting point `spec.md` §11: 622 claims per arm, ≈ 17 days, σ and ICC to re-estimate in shadow mode), duration to the slowest read date, the ship / iterate / kill rule and the early stop on the harm threshold of `governance.md`, the six questions of slide 13.*
+
+**Sample size for the decision metric (cost per damaged claim)** — `spec.md` §11, notebook `evals/sample_size.ipynb`:
+`n per arm = 2 (z₀.₉₇₅ + z₀.₈)² σ² / δ² × DE`, with `DE = 1 + (m − 1) · ICC`.
+
+| Input | Value | Where it comes from |
+|---|---|---|
+| smallest difference the test must see δ | **€1** per claim | the precision we need around the break-even: the decision is €3 (pays the ≈ €81k fixed costs on ≈ 27,000 claims a year) vs €1–3 (iterate) vs < €1 (kill), so the test must tell €1 apart from €0 |
+| spread σ | €6 per claim | guess, re-estimated from the shadow-mode weeks |
+| claims per merchant m · intra-merchant correlation ICC | 3 · 0.05 | guess, re-estimated in shadow mode |
+| two risks | 5 % false win · 20 % missed win | standard |
+| **result** | **565 × 1.10 ≈ 622 claims per arm, 1,244 in total** | |
+| volume | 2,250 damaged claims a month ≈ 75 a day (`02_sizing.xlsx`) | |
+| days for the sample | 1,244 ÷ 75 ≈ **17 days** | |
+
+**Duration: 4 weeks, not 17 days.** The slowest guardrail sets it: wrong refusals are confirmed by contests and re-contacts within 7 days, and leakage is read on the **weekly** 5 % sample — four weekly readings. We look at the decision metric **once**, at the read date.
+
+**The decision rule, written before the first claim:**
+- **Ship** (move to the rollout) if cost per damaged claim is down **≥ €3** vs control (the break-even) on the full sample, **and** wrong refusals ≤ 2 % in every weekly reading, **and** leakage ≤ €630 per 1,000, **and** French wrong refusals ≤ 1.5× English.
+- **Iterate** if down **€1 to €3**: one more cycle on the misses (same protocol, new read date) — and the time study decides whether a hand-handled claim costs more than the €9 assumed.
+- **Kill** if down **less than €1**, or if any guardrail band is broken at any weekly reading.
+- **Stop early only on harm** (the threshold in `governance.md` S5–S6), never on a good number.
+
+**Segments pre-registered:** language (FR / EN) · amount band · cover · fragile — reported per segment at the read date, never only the average (Simpson).
+
+**The six questions (slide 13), in words:**
+1. *What would convince a sceptical CFO?* A control group of merchants on today's process during the same 4 weeks, not a before/after.
+2. *What do we split?* Merchants: the effect would leak between two claims of the same merchant.
+3. *Smallest effect that matters?* €3 per claim pays the fixed costs; we size for €1 so the test can tell iterate from kill (halving δ would quadruple n).
+4. *Slowest guardrail?* Wrong refusals confirmed by contests and re-contacts (7 days) and the weekly leakage sample → 4 weeks.
+5. *Each result → which action?* Ship / iterate / kill above; the harm threshold stops at once; the Head of Support signs.
+6. *If we cannot randomise?* Shadow mode first (already planned), then before/after with French claims later than English as a comparison group, stating everything else that changed.
 
 ## 3 · Watch the four layers — monitoring and drift
 

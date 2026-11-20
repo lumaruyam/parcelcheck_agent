@@ -26,7 +26,20 @@ A better number at level 1 is a hypothesis about level 5, not a result: the arro
 - **Floors, not stops (any miss blocks the release):** **0 wrong automatic refunds** and **0 declines sent without a person**. Below 99 % valid JSON is not a floor: an invalid output is caught by the guardrail and goes to a person.
 
 ## 3 · Choose what to protect — the hierarchy, by segment
-*To be written by Luli.*
+| Kind | Metric | Numerator / denominator | Level | Lag | Source & owner |
+|---|---|---|---|---|---|
+| **Primary (1)** | L4 claims paid with the right amount and not contested within 7 days | L4 claims whose amount = policy and with no contest or re-contact within 7 days / decidable damaged claims (R1–R3) | 4 product | 7 days | claims table + weekly 5 % sample · PM |
+| Guardrail | wrong automatic refunds | L4 claims whose amount ≠ policy / L4 claims — **must be 0** (floor) | 3 | 1 week (sample) | weekly 5 % sample · Head of Support |
+| Guardrail | wrong-refusal rate | refund-eligible claims declined or sent back for evidence / refund-eligible claims — **≤ 2 %** | 3–4 | 1–4 weeks | reviewer decisions + contests · Head of Support |
+| Guardrail | human-queue time | claims decided by a person later than 24 h / claims sent to a person — **0 %** target | 4 | 1 day | queue timestamps · Head of Support |
+| Counter-metric | over-refund leakage | Σ (paid − policy amount) on L4 claims / 1,000 damaged claims — priced **€315**, rollback **€630** | 5 | 1 week | weekly 5 % sample · CFO |
+| Counter-metric | churn of merchants who received a decline | merchants with a declined claim who stop shipping within 90 days / merchants with a declined claim | 5 | 90 days | CRM · Head of Support |
+
+- **Segments reported:** language (FR / EN) · amount band (≤ €20 / €20–100 / > €100) · cover (standard / premium) · fragile (yes / no); merchant volume tier for the A/B strata.
+- **Fairness metric:** **equal error rates** — the wrong-refusal rate per segment, French vs English first (French messages are a known gap of the S3 audit; 17 eval v0 rows tagged `fr` had English text).
+- **Harm threshold (copied in `governance.md` S5):** French wrong refusals > 1.5× English for two consecutive weeks, or any segment > 2 % in a week → that segment drops to L1 until explained. Owner: Head of Support, reviewed with the DPO monthly.
+- **Where the thresholds come from (decisions, not measurements):** ≤ 2 % wrong refusals and the €630 rollback — `02_investment_memo.md` §3; 24 h human service level — `governance.md` S4; €315 priced leakage — 300 L4 × 3 % × €35 (`02_sizing.xlsx` Inputs rows 26, 30); 7-day contest window, 1.5× FR/EN ratio and 90-day churn window — team decisions written here, to revisit after shadow mode.
+- **How it could be gamed → the repair:** the primary rises if more claims are paid without checks or if the €20 limit is raised quietly → leakage is measured by people on a random sample, and the limit lives in `policy.py`, changed only by a release with the eval re-run. "Not contested within 7 days" can be gamed by making contests hard → the receipt always says how to reach a person (EU AI Act art. 50), and contest volume is itself watched.
 
 ## 4 · Derive the business metrics — three, with expected effects (the oral)
 

@@ -2,15 +2,15 @@
 
 > Three conversations (20 min each) + one usability test of the prototype with two of them.
 > Mom Test rules (Rob Fitzpatrick): ask about past behaviour, not opinions; never pitch; never ask "would you use…?".
-> **Status (6 Nov):** this is the kit. Nothing below the guides has been filled in. Every quote must come from a real conversation, or from a classmate in role, said explicitly in the table.
+> **Status (20 Nov):** three conversations done (all with classmates in role, said in the table below), the time study started, one usability test. Every quote below comes from these conversations.
 
-## Who we talk to (targets, one per row)
+## Who we talked to
 
 | # | Who (role, company type — no personal data) | Real user or classmate in role? | Date | Interviewer · note-taker |
 |---|---|---|---|---|
 | 1 | Someone who **filed a damaged-parcel claim** in the last 6 months: an online seller (Etsy / Vinted / own e-shop) or a small-business shipper | Classmate in role | Nov 8 | Luli · Wei-Ling |
-| 2 | Someone who **handled refund or claim tickets** in customer service (logistics, carrier, marketplace, e-commerce) | | | |
-| 3 | Someone who **approves refunds or watches refund costs** (team lead, ops or finance in e-commerce / logistics) | | | |
+| 2 | Someone who **handled refund or claim tickets** in customer service (logistics, carrier, marketplace, e-commerce) | Classmate in role | Nov 2026 | Rania · — |
+| 3 | Someone who **approves refunds or watches refund costs** (team lead, ops or finance in e-commerce / logistics) | Classmate in role | Nov 2026 | Chanelle · — |
 
 ## Interview guide — merchant (#1)
 

@@ -109,3 +109,13 @@ Reach: damaged claims 2,250/month; reviewer queue = claims a person still sees �
 
 ---
 *v2 only — after the users*
+
+## 9. What the users changed
+
+| Change | Evidence (who said / did what) |
+|---|---|
+| *(to fill after the three interviews and the usability test: `03_user_research.md`)* | |
+
+## 10. What they could not decide
+
+*(to fill: for example the €20 threshold, whether declines can ever be automatic, how much evidence a merchant must give — and who or what decides instead.)*

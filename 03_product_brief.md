@@ -78,7 +78,7 @@ Reach: damaged claims 2,250/month; reviewer queue = claims a person still sees �
 |---|---|---|
 | Intake, label facts, routing, amount | 1 rules | — (money must be deterministic and auditable) |
 | Photo: damaged / normal | 3 pretrained (YOLOv11n PackageDamage) | Rules can't read pixels; no labelled claim photos to train a classical model |
-| Photo: what is damaged, is the item visible | 3 pretrained (Gemini 2.5 Flash) | A two-class detector can't tell R1 from R3 from R6 |
+| Photo: what is damaged, is the item visible | 3 pretrained (Gemini 3.8 Flash) | A two-class detector can't tell R1 from R3 from R6 |
 | Clause + receipt from the evidence and free text | 3 pretrained: prompt-only Phi-3 in v0; + LoRA fine-tune only if the eval says the prompt fails | Rules can't read "carton écrasé mais le vase semble intact". Whether the prompt-only model breaks the JSON and the clause logic is what the before/after measures |
 | Whole system | 4 hybrid — a **workflow** (fixed path, no loop), not an agent | An agent that picks its own steps next to a refund tool is the Chevrolet failure; our path can be drawn in advance |
 
@@ -114,8 +114,13 @@ Reach: damaged claims 2,250/month; reviewer queue = claims a person still sees �
 
 | Change | Evidence (who said / did what) |
 |---|---|
-| *(to fill after the three interviews and the usability test: `03_user_research.md`)* | |
+| Add **goodwill gestures** (refunding shipping "in appeasement") to the WON'T list: our policy does not model them, a person decides | `03_user_research.md` What we heard #11 (support agent) |
+| Step 2 must check that the photo shows **the ordered item**, not just "damaged box": a damaged box alone is not enough, and photos of another product get through | #7 and #13 (support agent, eBay case) |
+| The time study must count the **approval wait**, not only handling minutes: 72 h for a manager callback, about a month for the merchant | #9 (support agent), #3 (merchant) |
+| **Not changed:** the success criterion (40% at L4, zero wrong automatic refunds) — no user evidence moved it | Desirability gate, last box |
 
 ## 10. What they could not decide
 
-*(to fill: for example the €20 threshold, whether declines can ever be automatic, how much evidence a merchant must give — and who or what decides instead.)*
+- **The €20 threshold for automatic refunds.** Finance (#3): "Never let it issue refunds without approval", and "any refund request that includes an image goes to a person first". A store owner handling damaged-product tickets does the opposite (What we heard #14): "I do anything under $20 just auto approve, the time saved is worth more than fighting it." **Who decides instead:** the Head of Support with the finance owner, on the results of the Session 6 experiment (L4 vs L2, randomised by merchant), not on opinions. Until then, v1 keeps L4 ≤ €20 behind the kill switch.
+- **Whether a photo is required at all.** Some retailers refund on the customer's word (#12: "You do not need to prove it"); our design depends on the photo. **Who decides instead:** the merchant's policy owner. v1 keeps the photo; a claim without one goes to `need_evidence`, then to a person.
+- **How long a claim really takes.** No source gave minutes per claim on the support side (#2, question 6), so the flip point (≈ 24 min) is still unverified. **Who decides instead:** the time study — a real agent, or our own replay of 30 claims — before the launch memo.

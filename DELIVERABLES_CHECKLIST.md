@@ -64,13 +64,13 @@ Check the authors before the tag: `git log --no-merges --format='%an' -- <file> 
 
 - [x] `06_07_experiments_operations.md` §1–5 (§1–2 Luli · §3–5 Wei-Ling), sample size in `evals/sample_size.ipynb`
 - [x] The six questions answered: comparison group · unit (merchant) · smallest gain (€3) · slowest guardrail (4 weeks) · decision rule written before · plan B
-- [x] `06_07` §4.3 "Last tested": 20 Nov switch re-run; drill not done on 24 Nov, rescheduled 26 Nov before the tag
+- [x] `06_07` §4.3 "Last tested": 20 Nov switch re-run; drill role-played before the tag (switch off/on; label rollback and timing not covered)
 - [x] `governance.md` S6 and S7
 
 ## Session 8 · launch and pitch · due 26 Nov
 
 - [x] `08_launch_memo.md` in the **six parts of the S8 template**
-- [x] `08_launch_memo.md`: dates filled (shadow 1–12 Feb 2027, A/B read 15 Mar 2027, drill rescheduled 26 Nov); judge rates *not measured yet* (billing)
+- [x] `08_launch_memo.md`: dates filled (shadow 1–12 Feb 2027, A/B read 15 Mar 2027, drill role-played, not timed); judge rates *not measured yet* (billing)
 - [x] `governance.md` S8 line: who signs, AI disclosure, last rollback test
 - [x] Final `spec.md` (v3) and `03_product_brief.md` (v2) on `main` (re-check after the last changes)
 - [x] `README.md` AI Product section and this checklist (R4-W, #30)
@@ -82,7 +82,7 @@ Check the authors before the tag: `git log --no-merges --format='%an' -- <file> 
 - [ ] Two graders who did not write the cases grade the 30 golden rows → human–human rate
 - [ ] Judge run on the same 30 rows → human–judge rate (billing restored 25 Nov; waits for the human grades)
 - [x] Switch re-run 20 Nov (scripted): switch off 0 L4 of 48 and of 90; switch on 12 of 48
-- [ ] Switch drill with the two people who press it, prompt-label rollback included (≈ 10 min)
+- [x] Switch drill role-played by Rania and Wei-Ling (switch off → claim to a person → switch on); **still to do:** prompt-label rollback and a timed run
 - [ ] Time study: is one damaged claim ≥ €17.50 by hand? (3 interviews + 30 replayed claims)
 - [x] Endpoint undeployed (20 Nov)
 

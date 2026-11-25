@@ -41,3 +41,18 @@ def test_guardrail_lets_a_correct_small_refund_through():
     claim = {**BASE, "item_value_eur": 9.5}
     raw = json.dumps({"clause": "R1", "decision": "refund", "amount_eur": 14.4, "receipt": "Refund approved: €14.40. Rule R1."})
     assert check(claim, raw)["route"] == "auto"
+
+
+def test_guardrail_holds_a_label_fee_refund_when_the_box_is_intact():
+    # eval v1, 25 Nov: V075, V076, V082 were paid under R3 although the photo shows no damage (should be R6)
+    claim = {**BASE, "damage_description": "Three sealed cardboard boxes are visible in intact condition with no signs of damage."}
+    raw = json.dumps({"clause": "R3", "decision": "refund", "amount_eur": 4.9, "receipt": "Refund approved: €4.90. Rule R3."})
+    verdict = check(claim, raw)
+    assert verdict["route"] == "human"
+    assert any("R6 should apply" in r for r in verdict["reasons"])
+
+
+def test_guardrail_lets_a_label_fee_refund_through_when_the_box_is_damaged():
+    claim = {**BASE, "damage_description": "Le carton a pris l'eau d'un côté, le sérum visage est sec et sans dommage."}
+    raw = json.dumps({"clause": "R3", "decision": "refund", "amount_eur": 4.9, "receipt": "Refund approved: €4.90. Rule R3."})
+    assert check(claim, raw)["route"] == "auto"

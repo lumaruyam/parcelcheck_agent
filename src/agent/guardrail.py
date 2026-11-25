@@ -9,6 +9,15 @@ import re
 from src.agent.policy import AUTO_LIMIT_EUR, CLAIM_WINDOW_DAYS, CLAUSES, trust_level
 
 NO_DAMAGE_WORDS = re.compile(r"no damage|undamaged|intact|parfait état|too dark|blurry|cannot be determined", re.I)
+# R3 refunds the label fee because the packaging is damaged: the photo must show packaging damage
+# (eval v1, 25 Nov 2026: V075, V076, V082 were paid under R3 although the photo shows no damage; label R6)
+PACKAGING_DAMAGE_WORDS = re.compile(
+    r"crush|dent|torn|tear|ripped|wet|soak|water|squash|collaps|hole|split|scuff"
+    r"|écras|enfonc|déchir|arrach|ouvert|mouill|tremp|pris l'eau|abîm|caboss|perc|humide", re.I)
+PACKAGING_INTACT_OR_UNCLEAR = re.compile(
+    r"undamaged|intact condition|in intact|appears intact|no signs? of damage|no visible damage"
+    r"|does not show|does not depict|not visible|not clearly visible|too dark|blurry|cannot be determined"
+    r"|sombre|flou|impossible de dire", re.I)
 
 
 def parse(raw: str):
@@ -54,6 +63,9 @@ def check(case_input: dict, raw_output: str, true_damage_type: str | None = None
         reasons.append("premium clause on a standard-cover parcel")
     if d["clause"] in ("R1", "R2") and NO_DAMAGE_WORDS.search(case_input["damage_description"]):
         reasons.append("content-damage refund but the photo description says no damage / unclear")
+    if d["clause"] == "R3" and (PACKAGING_INTACT_OR_UNCLEAR.search(case_input["damage_description"])
+                                or not PACKAGING_DAMAGE_WORDS.search(case_input["damage_description"])):
+        reasons.append("label-fee refund (R3) but the photo shows no packaging damage / is unclear: rule R6 should apply")
     if d["decision"] == "need_evidence":
         reasons.append("more evidence requested: a person decides")
     if d["decision"] == "decline":

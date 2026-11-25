@@ -11,7 +11,7 @@ One metric per level. "Produced by" = which evaluation type.
 | 5 Business | does it move the P&L? | refund cost per damaged claim (handling + leakage) | baseline **€9** per ticket (02_sizing, base); not yet with the agent | finance data, monthly | CFO | months |
 | 4 Product | does the merchant get the job done? | merchant time to resolution · share of damaged claims resolved at L4 in production | baseline **3 days** (P4 proposal, measured); not yet | A/B by merchant, then production, weekly | PM | weeks |
 | 3 Guardrails & responsible AI | does it stay inside the lines — for everyone? | wrong automatic refunds · declines sent without a person · by segment (FR / EN, amount band) | **0** wrong automatic refunds and **0** declines without a person on 48 claims; EV09 injection not paid (report_v0 §2) · by segment: not yet (eval v1) | eval-set + adversarial rows, each release; then the weekly 5 % sample | PM + DPO | days |
-| 2 AI system | does the workflow complete the task? | **L4 share of decidable claims (R1–R3) with the right amount** | **39 %** (11 claims) vs criterion 40 % (report_v0 §2) · routing agrees with the label 46/48 (96 %) | eval-set + two graders | AI engineer (Wei-Ling) | hours |
+| 2 AI system | does the workflow complete the task? | **L4 share of decidable claims (R1–R3) with the right amount** eval v0: **39 %** (11 claims) vs criterion 40 % (report_v0 §2) · **eval v1 (25 Nov, leak-checked): 18 %, 3 wrong refunds → 10 %, 0 after the R3 guardrail fix** (report_v1 §1) | eval-set + two graders | AI engineer (Wei-Ling) | hours |
 | 1 Model | is the component right? | clause accuracy · valid JSON | **92 %** (44/48) · **96 %** (46/48) (report_v0 §2) | offline eval-set, every change | ML engineer | seconds |
 
 A better number at level 1 is a hypothesis about level 5, not a result: the arrows are written in §4.
@@ -55,7 +55,7 @@ A better number at level 1 is a hypothesis about level 5, not a result: the arro
 MODEL      clause accuracy 92 % · valid JSON 96 %
    │  "+ model points add at most 4 pts of L4" (ceiling 43 %, stub)
    ▼
-AI SYSTEM  L4 share of decidable claims 39 % · 0 wrong automatic refunds
+AI SYSTEM  L4 share of decidable claims 10 % (eval v1, after the R3 fix; v0 said 39 %) · 0 wrong automatic refunds
    │  "× 75 % decidable → 29 % of damaged claims at L4"
    ▼
 PRODUCT    29 % resolved in < 1 min · the rest ≤ 24 h (was 3 days)
@@ -69,6 +69,6 @@ Read with the investment memo: even at this effect the AI module does not clear 
 ## 5 · Make the judge trustworthy — the evaluation plan
 - **Eval-set v1:** `evals/eval_set_v1.csv`, **100 claims** (200 in production), stratified by language (49 FR · 49 EN · 2 other), amount band, cover and fragile; 24 inputs are descriptions of real public photos (Gemini), 66 synthetic claims and 10 guardrail / service cases, all tagged in `origin`; **labels written by a person** — *to confirm: Chanelle reviews every row (initials and date in `notes`) before this line is true*; **0 leaks** with the training data (`scripts/check_eval_leak.py`). A **golden set of 30** (`evals/golden_30.txt`) never changes.
 - **Grading guideline:** `evals/judge_rubric.md` — five YES/NO criteria (right decision and rule, right amount, faithful, rule cited clearly, inside the policy) and three verdicts (sendable / needs edit / escalate), written before anyone graded. Two graders on the same 30 rows: agreement = **not measured yet** (billing blocked, see `evals/README.md`).
-- **Judge:** Gemini 3.8 Flash (`eu`, temperature 0), prompt `evals/judge_prompt.txt`; human–judge agreement on the rows where both graders agree = **not measured yet: Gemini and the endpoint return 403 (billing) since 17 Nov, re-checked 20 Nov; procedure ready in `evals/README.md`**; known bias: the judge is the same model family as the photo describer (step 1), not as the decision model (Phi-3); to be re-aligned after reading the disagreements, once the rate is measured (`evals/README.md`).
+- **Judge:** Gemini 3.8 Flash (`eu`, temperature 0), prompt `evals/judge_prompt.txt`; human–judge agreement on the rows where both graders agree = **not measured yet**: billing was blocked 17–25 Nov; the receipts to grade exist since the 25 Nov endpoint run, grading not done before the `v1.0` tag; procedure ready in `evals/README.md`; known bias: the judge is the same model family as the photo describer (step 1), not as the decision model (Phi-3); to be re-aligned after reading the disagreements, once the rate is measured (`evals/README.md`).
 - **Cadence:** eval-set + judge on every change of prompt, model or policy (CI checks the input guardrail on every PR); a **5 % weekly human sample** of L4 refunds in production.
 - *Optional, not graded — red rows:* the guardrail eval (`evals/guardrail_cases.jsonl`, 45 cases, prompt injection, abuse, personal data, out of scope) already runs in CI with thresholds.

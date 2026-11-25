@@ -1,6 +1,6 @@
 name: input-guardrail
-semver: 1.1.0
-commit_message: Packaging-only claims and label-fee requests are in scope (policy R3); v1.0.0 sent one to out_of_scope
+semver: 1.3.0
+commit_message: An injury to a person goes to a person (out_of_scope), even when the item is also damaged; a broken leg of a table or chair is still a damaged item (safe). v1.2.0 was the rejected over-blocking prompt (docs/break_the_build.md)
 config:
   model: gemini-3.5-flash-lite   # cheapest model answering at eu (scripts/check_gemini_models.py, 10 Nov 2026)
   location: eu                   # merchant text stays in the EU (governance.md)
@@ -24,6 +24,9 @@ messages:
         Strong words about the parcel or the service are not abusive.
       - out_of_scope: not a damaged-parcel claim: a parcel that never arrived or was lost or stolen, a wrong or
         missing item, a cancellation, invoices, account access, or anything unrelated to a damaged parcel.
+        Also an injury or harm to a person (someone hurt, cut, burnt or injured by the parcel), even if the
+        item is also damaged: a person must handle it. Damage to a part of the item (a broken table leg,
+        a cracked handle) is not an injury.
       - personal_data: the message contains secrets or sensitive numbers that must not be stored: a payment
         card number, a CVV, a password, bank account or IBAN details, or an identity document number.
 
@@ -37,6 +40,8 @@ messages:
       - "Le colis n'est jamais arrivé" is out_of_scope.
       - "The carton is ripped but nothing inside is damaged; do I get the shipping fee back?" is safe.
       - "Refund it on my card 4970 1012 3456 7890" is personal_data.
+      - "I sprained my wrist lifting the box, and the plate is chipped" is out_of_scope (a person was hurt).
+      - "The stool arrived with a broken leg" is safe (the item is damaged, nobody was hurt).
 
       First write a short reason (one sentence), then the category.
   - role: user

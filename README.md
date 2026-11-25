@@ -49,9 +49,9 @@ Status on 25 Nov 2026: ✅ on `main` · ⬜ to do
 | [`prototype/`](prototype/) four steps | S4 · A4 | one step each | ✅ |
 | [`evals/eval_set_v0.csv`](evals/eval_set_v0.csv) (50) · [`evals/report_v0.md`](evals/report_v0.md) | S4 · A4 | Chanelle · Wei-Ling | ✅ |
 | [`spec.md`](spec.md) | S3 → final 26 Nov | Rania, Wei-Ling | ✅ v3 |
-| [`05_metrics.md`](05_metrics.md) | S5 · A5, 22 Nov | Rania §1, 2, 4 · Luli §3 · Chanelle §5 | ✅ · judge rate not measured yet (billing blocked) |
+| [`05_metrics.md`](05_metrics.md) | S5 · A5, 22 Nov | Rania §1, 2, 4 · Luli §3 · Chanelle §5 | ✅ · eval v1 measured 25 Nov (`evals/report_v1.md`); judge rate not measured yet |
 | [`evals/eval_set_v1.csv`](evals/eval_set_v1.csv) (100) | S5 · A5, 22 Nov | Chanelle, Wei-Ling (hand check) | ✅ |
-| [`evals/judge_rubric.md`](evals/judge_rubric.md), [`judge_prompt.txt`](evals/judge_prompt.txt), [`evals/README.md`](evals/README.md) (two agreement rates) | S5 · A5, 22 Nov | Chanelle, Wei-Ling | ✅ · rates not measured yet (billing blocked) |
+| [`evals/judge_rubric.md`](evals/judge_rubric.md), [`judge_prompt.txt`](evals/judge_prompt.txt), [`evals/README.md`](evals/README.md) (two agreement rates) | S5 · A5, 22 Nov | Chanelle, Wei-Ling | ✅ · rates not measured yet (receipts ready 25 Nov, not graded) |
 | [`06_07_experiments_operations.md`](06_07_experiments_operations.md) | S6–S7 · 23 Nov | Luli §1–2 · Wei-Ling §3–5 | ✅ |
 | [`08_launch_memo.md`](08_launch_memo.md) | S8 · 26 Nov | Rania · Luli · Chanelle | ✅ six S8 parts |
 | [`governance.md`](governance.md), one line per session | S1 → S8 | all four | ✅ S1–S8 |

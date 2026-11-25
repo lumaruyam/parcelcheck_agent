@@ -116,5 +116,5 @@
 ## Session 8 — who signs the launch
 - This launch (step 1: shadow mode on damaged-parcel claims, 2 weeks, from 1 Feb 2027) is signed by the **Head of Support** and the **PM**; the **DPO** has read the protocol (`06_07` §1–2).
 - People talk directly to our AI: an L4 refund and its receipt are sent with no person in between. Every receipt says so, in the app's words: *"Prepared by an AI system and checked by our refund rules. Type **person** to talk to a human."* (EU AI Act art. 50, from 2 August 2026).
-- The rollback plan (`06_07` §4.3) was last tested on **20 Nov 2026** by Wei-Ling (scripted re-run: switch off → 0 L4 of 48 and of 90; switch on → 12 of 48); first test 7 Nov. Next test: the drill with the Head of Support and the engineer on call, prompt-label rollback included, planned Tue 24 Nov 2026 in class (Rania as Head of Support, Wei-Ling on call); then after every deploy.
+- The rollback plan (`06_07` §4.3) was last tested on **20 Nov 2026** by Wei-Ling (scripted re-run: switch off → 0 L4 of 48 and of 90; switch on → 12 of 48); first test 7 Nov. Next test: the drill with the Head of Support and the engineer on call, prompt-label rollback included, not done yet: the in-class slot on Tue 24 Nov did not take place, rescheduled Thu 26 Nov 2026 before the `v1.0` tag (Rania as Head of Support, Wei-Ling on call); then after every deploy.
 

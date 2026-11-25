@@ -35,7 +35,7 @@ Details: [`01_problem_statement.md`](01_problem_statement.md), [`02_investment_m
 
 One numbered file per session, as in the course repo template. Owners follow the rounds of the team PR guide; the full checklist with every requirement is in [`DELIVERABLES_CHECKLIST.md`](DELIVERABLES_CHECKLIST.md).
 
-Status on 20 Nov 2026, 19:30: ✅ on `main` once PR #30 is merged · ⬜ to do
+Status on 25 Nov 2026: ✅ on `main` · ⬜ to do
 
 | File | Session · due | Owner(s) | Status |
 |---|---|---|---|

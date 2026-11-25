@@ -3,7 +3,7 @@
 Built from the course templates (`project_repo_template`, `S3_templates` to `S8_templates`, `S_Recap_Sessions_1_to_7`).
 A box is ticked only when the file is **merged on `main`** of this repo.
 
-**Status on 20 Nov 2026, 19:30:** ✅ on `main` once PR #30 is merged · ⬜ to do. Rounds P1–P4 and R1–R4 are merged; #30 brings the S8 files, the A5 wording, eval set v1 and this checklist.
+**Status on 25 Nov 2026:** ✅ on `main` · ⬜ to do. Rounds P1–P4 and R1–R4 and #30 (S8 files, A5 wording, eval set v1, this checklist) are merged. Pre-tag check 25 Nov (Wei-Ling): authors per file, secrets, placeholders, drill wording.
 
 ## Key dates
 
@@ -18,7 +18,7 @@ A box is ticked only when the file is **merged on `main`** of this repo.
 ## Repo rules (checked at the oral)
 
 - [x] Every member authors commits in **at least four numbered files**, with their own Git account ✅ (Chanelle 7 · Luli 5 · Rania 5 · Wei-Ling 5)
-- [ ] No `.env`, keys, tfvars or real photos committed (check once before the tag)
+- [x] No `.env`, keys, tfvars or real photos committed: checked 25 Nov on `main` (no `.env` or tfvars tracked, no key patterns; the only images are the four screenshots in `docs/`). Re-check after any later merge
 - [ ] `v1.0` tag pushed on 26 Nov; nothing pushed after the first oral starts
 - [x] Pitch slides and demo video are **not** in Git
 
@@ -63,13 +63,13 @@ Check the authors before the tag: `git log --no-merges --format='%an' -- <file> 
 
 - [x] `06_07_experiments_operations.md` §1–5 (§1–2 Luli · §3–5 Wei-Ling), sample size in `evals/sample_size.ipynb`
 - [x] The six questions answered: comparison group · unit (merchant) · smallest gain (€3) · slowest guardrail (4 weeks) · decision rule written before · plan B
-- [x] `06_07` §4.3 "Last tested": 20 Nov switch re-run; drill planned 24 Nov
+- [x] `06_07` §4.3 "Last tested": 20 Nov switch re-run; drill not done on 24 Nov, rescheduled 26 Nov before the tag
 - [x] `governance.md` S6 and S7
 
 ## Session 8 · launch and pitch · due 26 Nov
 
 - [x] `08_launch_memo.md` in the **six parts of the S8 template**
-- [x] `08_launch_memo.md`: dates filled (shadow 1–12 Feb 2027, A/B read 15 Mar 2027, drill 24 Nov); judge rates *not measured yet* (billing)
+- [x] `08_launch_memo.md`: dates filled (shadow 1–12 Feb 2027, A/B read 15 Mar 2027, drill rescheduled 26 Nov); judge rates *not measured yet* (billing)
 - [x] `governance.md` S8 line: who signs, AI disclosure, last rollback test
 - [x] Final `spec.md` (v3) and `03_product_brief.md` (v2) on `main` (re-check after the last changes)
 - [x] `README.md` AI Product section and this checklist (R4-W, #30)

@@ -358,6 +358,8 @@ Python 3.11 (managed with `uv`). The `transformers`/`peft`/`trl` pins are the co
 
 **Headline (`evals/report_v0.md`):** on 48 labelled claims, the fine-tuned model resolved **39%** of the decidable claims alone with **0 wrong automatic refunds**; the criterion was ≥ 40% with 0 wrong refunds. Safe, one point short.
 
+**Update 25 Nov (`evals/report_v1.md`):** on the leak-checked eval v1 (90 claims) the same model decides **18%** alone with **3 wrong automatic refunds**; after the R3 guardrail fix, **10%** and **0**. v0 was optimistic (31 of its photo texts were seen in training).
+
 **Next (3 lines):**
 1. Retrain on data v2 (more R5 cases, wider wording) and re-run the same frozen eval (`spec.md` §17).
 2. Two graders on the receipts ("would I send this without editing?"), `evals/grading_v0.csv`.

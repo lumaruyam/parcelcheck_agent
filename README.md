@@ -55,7 +55,7 @@ Status on 25 Nov 2026: ✅ on `main` · ⬜ to do
 | [`06_07_experiments_operations.md`](06_07_experiments_operations.md) | S6–S7 · 23 Nov | Luli §1–2 · Wei-Ling §3–5 | ✅ |
 | [`08_launch_memo.md`](08_launch_memo.md) | S8 · 26 Nov | Rania · Luli · Chanelle | ✅ six S8 parts |
 | [`governance.md`](governance.md), one line per session | S1 → S8 | all four | ✅ S1–S8 |
-| tag `v1.0` | 26 Nov | — | ⬜ |
+| tag `v1.0` | 26 Nov | — | ✅ |
 
 **Pitch:** Friday 27 Nov, 8 min + 3 min of questions, everyone speaks; the demo shows a normal claim, a refused claim and the score. Slides and the demo video are not in Git.
 
